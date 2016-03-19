@@ -2,12 +2,12 @@
 
 const component = {
   data:{
-    intro: 'intro'
+    intro: 'this is it'
   },
   template:
-    ['section', '#intro',
+    ['section', '#intro', ['!onclick', 'clicked'],
         ['h1', '@intro'],
-        ['p', '.text', { Intro: {title: 'hello world'} }]
+        ['p', '.text']
     ],
   styles: {
     '#intro': {
@@ -15,8 +15,9 @@ const component = {
       padding: '10px'
     }
   },
-  clicked: (e) => {
-    this.setData({intro: 'clicked'})
+  clicked: (self,e) => {
+    console.log('hovver');
+    self.setData({intro: 'clicked'})
   }
 }
 
@@ -31,11 +32,21 @@ class JAHL{
     const HREF = /^\href:\s+/;
     const ID = /^\#/;
     const CLAS = /^\./;
+    const DATA = /^\@/;
+    const EVENT = /^\!/;
 
     let root = document.getElementById('root');
+    root.innerHTML = '';
     let parent = root;
     let el = null;
-    const self = obj;
+
+    var jahl = this;
+    obj.setData = (data) => {
+      for(var item in data){
+        obj.data[item] = data[item];
+      }
+      jahl.render(obj);
+    }
 
     const traverse = (node) => {
 
@@ -57,16 +68,28 @@ class JAHL{
              const clas = val.match(CLAS);
              if(clas)
                  el.className = val.replace(CLAS,'');
+
+             const data = val.match(DATA);
+             if(data)
+                 el.innerHTML = obj.data[val.replace(DATA,'')];
          }
 
          if(Array.isArray(val)){
-           el = document.createElement(val[0]);
-           if(typeof val[val.length-1] == 'string')
-             el.innerHTML = val[val.length-1];
-           el.parent = parent;
-           parent.appendChild(el);
-           parent = el;
-           traverse(val);
+           const event = val[0].match(EVENT);
+           if(event){
+             el[val[0].replace(EVENT,'')] = (e) => {
+               obj[val[1]](obj,e);
+             }
+           }
+           else{
+             el = document.createElement(val[0]);
+             if(typeof val[val.length-1] == 'string')
+               el.innerHTML = val[val.length-1];
+             el.parent = parent;
+             parent.appendChild(el);
+             parent = el;
+             traverse(val);
+           }
          }
          else if(i == node.length-1) parent = el.parent;
 
@@ -74,10 +97,10 @@ class JAHL{
        }
     };
 
-    traverse(obj);
+    traverse([obj.template]);
     console.log(root.innerHTML);
   }
 }
 
 const jahl = new JAHL();
-jahl.render([component.template]);
+jahl.render(component);
