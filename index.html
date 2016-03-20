@@ -8,6 +8,47 @@
     <div id="root">
 
     </div>
-    <script type="text/javascript" src="index.js"></script>
+    <script type="text/javascript" src="dist/schema.js"></script>
+
+    <script type="text/javascript">
+
+      const Schem = {
+        data: { title: 'this is a nav' },
+        template: ['div',
+          ['nav', '!onmouseenter: onChange' ,'@name'],
+          ['div', '>']
+        ],
+        onChange: (self) => {
+          self.setData({ name: self.data.name + ' yo man' })
+        }
+      };
+
+      const Component = {
+        data:{
+          intro: 'this is it'
+        },
+        template: [ 'div',
+          [Schem, 'name: james', ['span', 'top nav']],
+          ['section', '#intro', '!onclick: clicked',
+              '>',
+              ['h1', '@intro'],
+              ['p', '.text', 'paragraph this is']
+          ],
+          [Schem, 'name: sam', ['span', 'bottom naavvv']]
+        ],
+        styles: {
+          '#intro': {
+            color: 'green',
+            padding: '10px'
+          }
+        },
+        clicked: (self,e) => {
+          self.setData({intro: 'clicked'})
+        }
+      }
+
+      var engine = new SchemaEngine();
+      engine.render(Component,document.getElementById('root'));
+    </script>
   </body>
 </html>
