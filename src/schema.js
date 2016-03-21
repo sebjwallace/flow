@@ -4,11 +4,11 @@ import {JASS} from 'jass-js';
 
 var SchemaEngine = function(){
 
-  var store = [];
+  var components = [];
 
-  const HREF = /^\href:\s+/;
+  const ATTR = /^[a-z,A-Z,-]+\:\s/;
   const ID = /^\#/;
-  const CLAS = /^\./;
+  const CLAS = /(^|\s+)\./g;
   const DATA = /^\@/;
   const EVENT = /^\!/;
   const TRANS = /^\>/;
@@ -21,7 +21,16 @@ var SchemaEngine = function(){
     obj.root = root;
     let parent = root;
     let el = null;
-    const stack = [];
+
+    // for(var item in obj){
+    //   if(typeof obj[item] == 'function')
+    //     obj[item] = (arguments) => { obj[item](arguments).bind(obj); }
+    // }
+
+    if(obj.styles){
+      const styles = new JASS.Component(obj.styles);
+      obj.root.className = styles.className();
+    }
 
     obj.setData = (data) => {
       for(var item in data){
@@ -30,34 +39,71 @@ var SchemaEngine = function(){
       render(obj,obj.root,obj.trans);
     }
 
-    const newElement = (parent,type) => {
+    const newElement = (obj,parent,type) => {
       var tag = type || 'span';
-      var child = document.createElement(tag);
-      child.parent = el;
+      if(tag.match(ID)){
+        var child = document.createElement('div');
+        child.id = tag.replace(ID,'');
+      }
+      else if(tag.match(CLAS)){
+        var child = document.createElement('div');
+        child.className = tag.replace(CLAS,'');
+      }
+      else{
+        var child = document.createElement(tag);
+      }
+      child.parent = parent;
       parent.appendChild(child);
       return child;
+    }
+
+    const applySelector = (el,val) => {
+      if(typeof val != 'string') return false;
+      if(val.match(ID))
+          el.id = val.replace(ID,'');
+      else if(val.match(CLAS))
+          el.className = val.replace(CLAS,' ');
+      else return false;
+      return true;
+    }
+
+    const getElementPath = (el) => {
+      let path = el.nodeName;
+      let current = el;
+      let parent = el.parentNode;
+      while(parent){
+        for(var child in parent.children){
+          if(parent.children[child] == current)
+            path = parent.nodeName + '[' + child + ']' + '/' + path;
+        }
+        current = parent;
+        parent = parent.parentNode;
+      }
+      return path;
+    }
+
+    const getComponentId = (el) => {
+      return getElementPath(el) + el.children.length;
     }
 
     const traverse = (node) => {
 
        for(let i=0; i < node.length; i++){
 
-         const prop = i;
          let val = node[i];
 
          if(typeof val == 'string'){
 
-             if(val.match(HREF))
-                 el.href = val.replace(HREF,'');
+             if(applySelector(el,val)) continue;
 
-             else if(val.match(ID))
-                 el.id = val.replace(ID,'');
+             if(val.match(ATTR))
+                 el.setAttribute([val.match(/^[a-z,A-Z,-]+/)[0]], val.replace(ATTR,''));
 
-             else if(val.match(CLAS))
-                 el.className = val.replace(CLAS,'');
-
-             else if(val.match(DATA))
-                 el.innerHTML = obj.data[val.replace(DATA,'')];
+             else if(val.match(DATA)){
+               const data = obj.data[val.replace(DATA,'')];
+               if(Array.isArray(data)) { val = data; el.innerHTML = ''}
+               else el.innerHTML = data;
+             }
 
              else if(val.match(EVENT)){
                var format = val.replace('!','').replace(/\s/,'').split(':');
@@ -73,42 +119,44 @@ var SchemaEngine = function(){
          }
 
          if(Array.isArray(val)){
-           if(typeof val[0] == 'object'){
-             var sub = newElement(parent);
-             if(store[el]){
-               render(store[el],sub,val[val.length-1]);
-             }
+           const tag = val[0];
+           const content = val[val.length-1];
+           if(typeof tag == 'object'){
+             const component = tag;
+             const sub = newElement(obj,parent,'div');
+             const componentID = getComponentId(parent);
+            //  console.log(componentID);
+             if(components[componentID])
+               render(components[componentID],sub,content);
              else{
-               var instance = Object.create(val[0]);
-               instance.data = JSON.parse(JSON.stringify(val[0].data));
-               for(var j = 1; j < val.length -1; j++){
-                 const keyVal = val[j].replace(/\s+/g,'').split(':');
-                 instance.data[keyVal[0]] = keyVal[1];
+               var instance = Object.create(component);
+               if(component.data){
+                 instance.data = JSON.parse(JSON.stringify(component.data));
+                 for(var data in val[1]){
+                   instance.data[data] = val[1][data];
+                 }
                }
-               store[el] = instance;
-               const styles = new JASS.Component(obj.styles);
-               obj.root.className = styles.className();
-               render(instance,sub,val[val.length-1]);
+               components[componentID] = instance;
+               render(instance,sub,content);
+             }
+             for(var j = 1; j < val.length; j++){
+               applySelector(sub,val[j]);
              }
            }
            else{
-             el = newElement(parent,val[0]);
-             const content = val[val.length-1];
+             el = newElement(obj,parent,tag);
              if(typeof content == 'string' && !content.match(TRANS))
-               el.innerHTML = val[val.length-1];
+               el.innerHTML = content;
              parent = el;
-             stack[level] = el;
-             level++;
              traverse(val);
-             level--;
-             parent = stack[level].parent;
+             parent = parent.parent;
            }
          }
 
        }
     };
-
     traverse([obj.template]);
+    // console.log(root.innerHTML);
   }
 
   this.render = render;

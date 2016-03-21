@@ -1,5 +1,5 @@
 {
-  "name": "schema",
+  "name": "schema.engine",
   "version": "1.0.0",
   "description": "schema oriented DOM rendering engine",
   "main": "index.js",

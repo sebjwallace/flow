@@ -14,8 +14,8 @@
 
       const Schem = {
         data: { title: 'this is a nav' },
-        template: ['div',
-          ['nav', '!onmouseenter: onChange' ,'@name'],
+        template: [ 'div',
+          ['#mainBlock', '@name'],
           ['div', '>']
         ],
         onChange: (self) => {
@@ -25,25 +25,34 @@
 
       const Component = {
         data:{
-          intro: 'this is it'
+          intro: ['div', 'things']
         },
         template: [ 'div',
-          [Schem, 'name: james', ['span', 'top nav']],
+          [Schem, {name: 'james'}, '#topNav', ['span', 'top nav']],
           ['section', '#intro', '!onclick: clicked',
               '>',
               ['h1', '@intro'],
-              ['p', '.text', 'paragraph this is']
+              ['p', '.text', 'paragraph this is'],
+              ['a', 'href: www.google.com', 'link to google'],
+              ['button', '!onclick heylo', '']
           ],
-          [Schem, 'name: sam', ['span', 'bottom naavvv']]
+          [Schem, {name: 'tom'}, '#bottomNav', ['span', 'bottom naavvv']]
         ],
         styles: {
           '#intro': {
             color: 'green',
             padding: '10px'
+          },
+          '#topNav': {
+            color: 'orange'
           }
         },
         clicked: (self,e) => {
-          self.setData({intro: 'clicked'})
+          self.setData({intro: 'clicked'});
+          self.heylo();
+        },
+        heylo: () => {
+          console.log('mannnnn!!');
         }
       }
 
