@@ -21,11 +21,11 @@ const Button = {
 }
 ```
 
-To render a component just pass it into the SchemaEngine.
+To render a component just pass it into the SchemaEngine, along with the element to mount it to.
 
 ```javascript
   const engine = new SchemaEngine;
-  engine.render(Button);
+  engine.render(Button, document.getElementById('root'));
 ```
 
 What's with the template structure? It is just an array, or an array of arrays if there's nesting.
