@@ -7,7 +7,7 @@ A component is simply an object literal, acting like a schematic for the DOM str
 ```javascript
 const Button = {
   data: { label: 'Submit' },
-  template: ['button', '.btn', '!onclick: submit', '@label'],
+  template: ['button', '.btn', '!onclick: submit', '$label'],
   styles: {
     '.btn': {
       color: '#333',
@@ -57,6 +57,51 @@ The first string in the array is always a tag (id or class for divs). The last s
 ```javascript
   ['.divClass', '#parentClass', 'data-id: p1',
     ['a', 'href: https://github.com', 'Github'],
-    ['img', 'src: images/icon.png', '']
+    ['img', 'src: images/icon.png', '!onclick: clicked', '']
   ]
+```
+
+The data can be rendered to the DOM using directives. '?' is an 'if' query, and '%' is a 'for' loop.
+
+```javascript
+  FoodList = {
+    data: {
+      list: ['milk', 'bread', 'jam']
+    },
+    template:['.foodList', '? $list',
+      ['ul', '% $item in $list',
+        ['li', '$item']
+      ]
+    ]
+  }
+  
+```
+
+Another directive, wrap - wrap the element in a containing element. Brackets either side of a tag or selector will wrap the element.
+
+```javascript
+['.content', '[.container]', '$content']
+```
+
+Dataflow is uni-directional, so when data is set, the template re-renders. When the styles are set, only the styles are re-rendered.
+
+```javascript
+  Component = {
+    data: {
+      title: 'Welcome'
+    },
+    template: ['div',
+      ['button', '!onclick: changeData', 'Change Data'],
+      ['button', '!onclick: changeStyles', 'Change Styles']
+    ],
+    styles: {
+      // styles
+    },
+    changeData: (self) => {
+      self.setData({ title: 'Changed' })
+    },
+    changeStyles: (self) => {
+      self.setStyles({ /*styles*/ });
+    }
+  }
 ```
