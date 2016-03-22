@@ -2,6 +2,8 @@
 
 Schema is a front-end library for rendering object-literal components to the DOM. Object-literal components act as schemas that describe the HTML, CSS and JS that the component encapsulates.
 
+The original intention for Schema was to help organize the structure of a website with a standard data type - object-literal. Then using objects as components to compose larger components into pages. Although there are many frameworks available that offer component architecture, Schema aims to keep the development process light and fast.
+
 A component is simply an object literal, acting like a schematic for the DOM structure it describes.
 
 ```javascript
@@ -28,7 +30,7 @@ To render a component just pass it into the SchemaEngine, along with the element
   engine.render(Button, document.getElementById('root'));
 ```
 
-What's with the template structure? It is just an array, or an array of arrays if there's nesting.
+Schema aims to abstract away from XML/HTML syntax completely, resulting in more flexible and readable code using arrays. Each array represents an element, where the last item in the array is either the content of the element, or the nesting or other elements.
 
 ```javascript
   ['div', '.divClass', 'This is the content of the div']
@@ -38,18 +40,19 @@ Will be generated directly in the DOM, but the HTML representation would look li
   <div class='divClass'>This is the content of the div</div>
 ```
 
-Some sugar can come into use.
-
 ```javascript
-  ['.divClass', 'This is the content of the div']
-```
-
-Some nesting.
-
-```javascript
-  ['.divClass',
-    ['.childDiv', 'This is a child div']
+  ['ul',
+    ['li', 'list item 1'],
+    ['li', 'list item 2'],
+    ['li', 'list item 3']
   ]
+```
+```html
+  <ul>
+    <li>list item 1</li>
+    <li>list item 2</li>
+    <li>list item 3</li>
+  </ul>
 ```
 
 The first string in the array is always a tag (id or class for divs). The last string is always the content of the tag. Everything between are attributes.
@@ -74,7 +77,16 @@ The data can be rendered to the DOM using directives. '?' is an 'if' query, and 
       ]
     ]
   }
-  
+```
+Will render:
+```html
+<div class='foodList'>
+  <ul>
+    <li>milk</li>
+    <li>bread</li>
+    <li>jam</li>
+  </ul>
+</div>
 ```
 
 Another directive, wrap - wrap the element in a containing element. Brackets either side of a tag or selector will wrap the element.
