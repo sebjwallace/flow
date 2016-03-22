@@ -80,7 +80,14 @@ The data can be rendered to the DOM using directives. '?' is an 'if' query, and 
 Another directive, wrap - wrap the element in a containing element. Brackets either side of a tag or selector will wrap the element.
 
 ```javascript
-['.content', '[.container]', '$content']
+['.content', '[.container]', 'This element is wrapped']
+```
+```html
+<div class='.container'>
+  <div class='.content'>
+    This element is wrapped
+  </div>
+</div>
 ```
 
 Dataflow is uni-directional, so when data is set, the template re-renders. When the styles are set, only the styles are re-rendered.
