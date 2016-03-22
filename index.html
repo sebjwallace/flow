@@ -5,9 +5,7 @@
     <title>schema</title>
   </head>
   <body>
-    <div id="root">
-
-    </div>
+    <div id="root"></div>
     <script type="text/javascript" src="dist/schema.js"></script>
 
     <script type="text/javascript">
@@ -15,11 +13,15 @@
       const Schem = {
         data: { title: 'this is a nav' },
         template: [ 'div',
-          ['#mainBlock', '$name'],
+          ['#mainBlock', '[h1]', '$name'],
+          ['i', '$message'],
           ['div', '>']
         ],
         onChange: (self) => {
           self.setData({ name: self.data.name + ' yo man' })
+        },
+        init: (self) => {
+          self.setData({message: 'loaded!'})
         }
       };
 
@@ -55,6 +57,7 @@
         },
         clicked: (self,e) => {
           self.setData({intro: 'clicked'});
+          self.setStyles({ '#intro': {color: 'brown'} })
           self.heylo();
         },
         heylo: () => {

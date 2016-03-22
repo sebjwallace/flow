@@ -951,8 +951,7 @@ var SchemaEngine = function SchemaEngine() {
   var TRANS = /^\>/;
   var IF = /^\?\s+/;
   var FOR = /^\%\s+/;
-
-  var level = 0;
+  var WRAP = /^\[[a-z,A-Z,0-9,-]+\]/;
 
   var render = function render(obj, root, trans) {
 
@@ -963,16 +962,6 @@ var SchemaEngine = function SchemaEngine() {
     dom.parent = root;
     dom.el = null;
 
-    // for(var item in obj){
-    //   if(typeof obj[item] == 'function')
-    //     obj[item] = (arguments) => { obj[item](arguments).bind(obj); }
-    // }
-
-    if (obj.styles) {
-      var styles = new _jassJs.JASS.Component(obj.styles);
-      obj.root.className = styles.className();
-    }
-
     obj.setData = function (data) {
       for (var item in data) {
         obj.data[item] = data[item];
@@ -980,7 +969,7 @@ var SchemaEngine = function SchemaEngine() {
       render(obj, obj.root, obj.trans);
     };
 
-    var newElement = function newElement(obj, parent, type) {
+    var newElement = function newElement(parent, type) {
       var tag = type || 'span';
       if (tag.match(ID)) {
         var child = document.createElement('div');
@@ -1001,7 +990,7 @@ var SchemaEngine = function SchemaEngine() {
       var content = val[val.length - 1];
       if (typeof tag == 'object') {
         var component = tag;
-        var sub = newElement(obj, dom.parent, 'div');
+        var sub = newElement(dom.parent, 'div');
         var componentID = getComponentId(dom.parent);
         if (components[componentID]) render(components[componentID], sub, content);else {
           var instance = Object.create(component);
@@ -1018,7 +1007,7 @@ var SchemaEngine = function SchemaEngine() {
           applySelector(sub, val[j]);
         }
       } else {
-        dom.el = newElement(obj, dom.parent, tag);
+        dom.el = newElement(dom.parent, tag);
         if (typeof content == 'string' && !content.match(TRANS)) dom.el.innerHTML = content;
         dom.parent = dom.el;
         traverse(val);
@@ -1050,6 +1039,16 @@ var SchemaEngine = function SchemaEngine() {
       return getElementPath(el) + el.children.length;
     };
 
+    var getDataFromVar = function getDataFromVar(obj, value) {
+      var prop = value.replace(DATA, '');
+      var data = null;
+      if (prop.match(/\./)) {
+        var path = prop.split(/\./);
+        data = obj.data[path[0]][path[1]];
+      } else data = obj.data[prop];
+      return data;
+    };
+
     var traverse = function traverse(node) {
 
       for (var i = 0; i < node.length; i++) {
@@ -1060,13 +1059,15 @@ var SchemaEngine = function SchemaEngine() {
 
           if (applySelector(dom.el, val)) continue;
 
-          if (val.match(ATTR)) dom.el.setAttribute([val.match(/^[a-z,A-Z,-]+/)[0]], val.replace(ATTR, ''));else if (val.match(DATA)) {
-            var prop = val.replace(DATA, '');
-            var data = null;
-            if (prop.match(/\./)) {
-              var path = prop.split(/\./);
-              data = obj.data[path[0]][path[1]];
-            } else data = obj.data[prop];
+          if (val.match(ATTR)) {
+            var attr = val.match(/^[a-z,A-Z,-]+/)[0];
+            var value = val.replace(ATTR, '');
+            if (value.match(DATA)) {
+              value = getDataFromVar(obj, value);
+            }
+            dom.el.setAttribute(attr, value);
+          } else if (val.match(DATA)) {
+            var data = getDataFromVar(obj, val);
             if (Array.isArray(data)) {
               val = data;dom.el.innerHTML = '';
             } else dom.el.innerHTML = data;
@@ -1093,6 +1094,11 @@ var SchemaEngine = function SchemaEngine() {
               buildElement(obj, dom, node[node.length - 1]);
             }
             i = node.length;
+          } else if (val.match(WRAP)) {
+            var tag = val.replace(/[\[|\]]/g, '');
+            var newParent = newElement(dom.parent.parent, tag);
+            newParent.appendChild(dom.parent);
+            dom.parent = newParent.children[0];
           }
         }
 
@@ -1102,6 +1108,22 @@ var SchemaEngine = function SchemaEngine() {
       }
     };
     traverse([obj.template]);
+
+    if (obj.styles) {
+      (function () {
+        var styles = new _jassJs.JASS.Component(obj.styles);
+        obj.root.className = styles.className();
+        obj.setStyles = function (set) {
+          styles.setStyles(set);
+        };
+      })();
+    }
+
+    if (obj.init && !obj.rendered) {
+      obj.rendered = true;
+      obj.init(obj);
+    }
+
     // console.log(root.innerHTML);
   };
 

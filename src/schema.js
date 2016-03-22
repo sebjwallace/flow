@@ -14,8 +14,8 @@ var SchemaEngine = function(){
   const TRANS = /^\>/;
   const IF = /^\?\s+/;
   const FOR = /^\%\s+/;
+  const WRAP = /^\[[a-z,A-Z,0-9,-]+\]/;
 
-  let level = 0;
 
   const render = (obj,root,trans) => {
 
@@ -26,16 +26,6 @@ var SchemaEngine = function(){
     dom.parent = root;
     dom.el = null;
 
-    // for(var item in obj){
-    //   if(typeof obj[item] == 'function')
-    //     obj[item] = (arguments) => { obj[item](arguments).bind(obj); }
-    // }
-
-    if(obj.styles){
-      const styles = new JASS.Component(obj.styles);
-      obj.root.className = styles.className();
-    }
-
     obj.setData = (data) => {
       for(var item in data){
         obj.data[item] = data[item];
@@ -43,7 +33,7 @@ var SchemaEngine = function(){
       render(obj,obj.root,obj.trans);
     }
 
-    const newElement = (obj,parent,type) => {
+    const newElement = (parent,type) => {
       var tag = type || 'span';
       if(tag.match(ID)){
         var child = document.createElement('div');
@@ -66,7 +56,7 @@ var SchemaEngine = function(){
       const content = val[val.length-1];
       if(typeof tag == 'object'){
         const component = tag;
-        const sub = newElement(obj,dom.parent,'div');
+        const sub = newElement(dom.parent,'div');
         const componentID = getComponentId(dom.parent);
         if(components[componentID])
           render(components[componentID],sub,content);
@@ -86,7 +76,7 @@ var SchemaEngine = function(){
         }
       }
       else{
-        dom.el = newElement(obj,dom.parent,tag);
+        dom.el = newElement(dom.parent,tag);
         if(typeof content == 'string' && !content.match(TRANS))
           dom.el.innerHTML = content;
         dom.parent = dom.el;
@@ -124,6 +114,17 @@ var SchemaEngine = function(){
       return getElementPath(el) + el.children.length;
     }
 
+    const getDataFromVar = (obj,value) => {
+      const prop = value.replace(DATA,'');
+      let data = null;
+      if(prop.match(/\./)){
+        const path = prop.split(/\./);
+        data = obj.data[path[0]][path[1]];
+      }
+      else data = obj.data[prop];
+      return data;
+    }
+
     const traverse = (node) => {
 
        for(let i=0; i < node.length; i++){
@@ -134,17 +135,17 @@ var SchemaEngine = function(){
 
              if(applySelector(dom.el,val)) continue;
 
-             if(val.match(ATTR))
-                 dom.el.setAttribute([val.match(/^[a-z,A-Z,-]+/)[0]], val.replace(ATTR,''));
+             if(val.match(ATTR)){
+               const attr = val.match(/^[a-z,A-Z,-]+/)[0];
+               let value = val.replace(ATTR,'');
+               if(value.match(DATA)){
+                 value = getDataFromVar(obj,value);
+               }
+               dom.el.setAttribute(attr,value);
+             }
 
              else if(val.match(DATA)){
-               const prop = val.replace(DATA,'');
-               let data = null;
-               if(prop.match(/\./)){
-                 const path = prop.split(/\./);
-                 data = obj.data[path[0]][path[1]];
-               }
-               else data = obj.data[prop];
+               const data = getDataFromVar(obj,val);
                if(Array.isArray(data)) { val = data; dom.el.innerHTML = ''}
                else dom.el.innerHTML = data;
              }
@@ -179,6 +180,13 @@ var SchemaEngine = function(){
                }
                i = node.length;
              }
+
+             else if(val.match(WRAP)){
+               const tag = val.replace(/[\[|\]]/g,'');
+               const newParent = newElement(dom.parent.parent,tag);
+               newParent.appendChild(dom.parent);
+               dom.parent = newParent.children[0];
+             }
          }
 
          if(Array.isArray(val)){
@@ -188,6 +196,18 @@ var SchemaEngine = function(){
        }
     };
     traverse([obj.template]);
+
+    if(obj.styles){
+      const styles = new JASS.Component(obj.styles);
+      obj.root.className = styles.className();
+      obj.setStyles = (set) => { styles.setStyles(set) };
+    }
+
+    if(obj.init && !obj.rendered){
+      obj.rendered = true;
+      obj.init(obj);
+    }
+
     // console.log(root.innerHTML);
   }
 
