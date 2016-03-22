@@ -15,7 +15,7 @@
       const Schem = {
         data: { title: 'this is a nav' },
         template: [ 'div',
-          ['#mainBlock', '@name'],
+          ['#mainBlock', '$name'],
           ['div', '>']
         ],
         onChange: (self) => {
@@ -25,16 +25,22 @@
 
       const Component = {
         data:{
-          intro: ['div', 'things']
+          intro: 'intro heyy',
+          list: [{name:'tom', hobby:'trekking'},{name:'sam', hobby:'biking'}]
         },
         template: [ 'div',
           [Schem, {name: 'james'}, '#topNav', ['span', 'top nav']],
-          ['section', '#intro', '!onclick: clicked',
+          ['section', '#intro', '? $intro', '!onclick: clicked',
               '>',
-              ['h1', '@intro'],
+              ['h1', '$intro'],
               ['p', '.text', 'paragraph this is'],
               ['a', 'href: www.google.com', 'link to google'],
-              ['button', '!onclick heylo', '']
+              ['ul', '% $item in $list',
+                ['li',
+                  ['h3', '$item.name'],
+                  ['a', '$item.hobby']
+                ]
+              ]
           ],
           [Schem, {name: 'tom'}, '#bottomNav', ['span', 'bottom naavvv']]
         ],

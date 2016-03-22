@@ -946,9 +946,11 @@ var SchemaEngine = function SchemaEngine() {
   var ATTR = /^[a-z,A-Z,-]+\:\s/;
   var ID = /^\#/;
   var CLAS = /(^|\s+)\./g;
-  var DATA = /^\@/;
+  var DATA = /^\$/;
   var EVENT = /^\!/;
   var TRANS = /^\>/;
+  var IF = /^\?\s+/;
+  var FOR = /^\%\s+/;
 
   var level = 0;
 
@@ -956,8 +958,10 @@ var SchemaEngine = function SchemaEngine() {
 
     root.innerHTML = '';
     obj.root = root;
-    var parent = root;
-    var el = null;
+
+    var dom = {};
+    dom.parent = root;
+    dom.el = null;
 
     // for(var item in obj){
     //   if(typeof obj[item] == 'function')
@@ -992,6 +996,36 @@ var SchemaEngine = function SchemaEngine() {
       return child;
     };
 
+    var buildElement = function buildElement(obj, dom, val) {
+      var tag = val[0];
+      var content = val[val.length - 1];
+      if (typeof tag == 'object') {
+        var component = tag;
+        var sub = newElement(obj, dom.parent, 'div');
+        var componentID = getComponentId(dom.parent);
+        if (components[componentID]) render(components[componentID], sub, content);else {
+          var instance = Object.create(component);
+          if (component.data) {
+            instance.data = JSON.parse(JSON.stringify(component.data));
+            for (var data in val[1]) {
+              instance.data[data] = val[1][data];
+            }
+          }
+          components[componentID] = instance;
+          render(instance, sub, content);
+        }
+        for (var j = 1; j < val.length; j++) {
+          applySelector(sub, val[j]);
+        }
+      } else {
+        dom.el = newElement(obj, dom.parent, tag);
+        if (typeof content == 'string' && !content.match(TRANS)) dom.el.innerHTML = content;
+        dom.parent = dom.el;
+        traverse(val);
+        dom.parent = dom.parent.parent;
+      }
+    };
+
     var applySelector = function applySelector(el, val) {
       if (typeof val != 'string') return false;
       if (val.match(ID)) el.id = val.replace(ID, '');else if (val.match(CLAS)) el.className = val.replace(CLAS, ' ');else return false;
@@ -1024,53 +1058,46 @@ var SchemaEngine = function SchemaEngine() {
 
         if (typeof val == 'string') {
 
-          if (applySelector(el, val)) continue;
+          if (applySelector(dom.el, val)) continue;
 
-          if (val.match(ATTR)) el.setAttribute([val.match(/^[a-z,A-Z,-]+/)[0]], val.replace(ATTR, ''));else if (val.match(DATA)) {
-            var _data = obj.data[val.replace(DATA, '')];
-            if (Array.isArray(_data)) {
-              val = _data;el.innerHTML = '';
-            } else el.innerHTML = _data;
+          if (val.match(ATTR)) dom.el.setAttribute([val.match(/^[a-z,A-Z,-]+/)[0]], val.replace(ATTR, ''));else if (val.match(DATA)) {
+            var prop = val.replace(DATA, '');
+            var data = null;
+            if (prop.match(/\./)) {
+              var path = prop.split(/\./);
+              data = obj.data[path[0]][path[1]];
+            } else data = obj.data[prop];
+            if (Array.isArray(data)) {
+              val = data;dom.el.innerHTML = '';
+            } else dom.el.innerHTML = data;
           } else if (val.match(EVENT)) {
             var format = val.replace('!', '').replace(/\s/, '').split(':');
-            el[format[0]] = function (e) {
+            dom.el[format[0]] = function (e) {
               obj[format[1]](obj, e);
             };
           } else if (val.match(TRANS)) {
             val = trans;
             obj.trans = trans;
+          } else if (val.match(IF)) {
+            var exp = val.replace(IF, '');
+            if (exp.match(DATA)) {
+              var data = obj.data[exp.replace(DATA, '')];
+              if (!data) dom.el.style.display = 'none';
+            }
+          } else if (val.match(FOR)) {
+            var args = val.replace(FOR, '').split(/\s+\in\s+/);
+            var data = obj.data[args[1].replace(DATA, '')];
+            var temp = args[0].replace(DATA, '');
+            for (var item in data) {
+              obj.data[temp] = data[item];
+              buildElement(obj, dom, node[node.length - 1]);
+            }
+            i = node.length;
           }
         }
 
         if (Array.isArray(val)) {
-          var tag = val[0];
-          var content = val[val.length - 1];
-          if (typeof tag == 'object') {
-            var component = tag;
-            var sub = newElement(obj, parent, 'div');
-            var componentID = getComponentId(parent);
-            //  console.log(componentID);
-            if (components[componentID]) render(components[componentID], sub, content);else {
-              var instance = Object.create(component);
-              if (component.data) {
-                instance.data = JSON.parse(JSON.stringify(component.data));
-                for (var data in val[1]) {
-                  instance.data[data] = val[1][data];
-                }
-              }
-              components[componentID] = instance;
-              render(instance, sub, content);
-            }
-            for (var j = 1; j < val.length; j++) {
-              applySelector(sub, val[j]);
-            }
-          } else {
-            el = newElement(obj, parent, tag);
-            if (typeof content == 'string' && !content.match(TRANS)) el.innerHTML = content;
-            parent = el;
-            traverse(val);
-            parent = parent.parent;
-          }
+          buildElement(obj, dom, val);
         }
       }
     };
