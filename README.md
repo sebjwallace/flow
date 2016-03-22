@@ -4,6 +4,8 @@ Schema is a front-end library for rendering object-literal components to the DOM
 
 The original intention for Schema was to help organize the structure of a website with a standard data type - object-literal. Then using objects as components to compose larger components into pages. Although there are many frameworks available that offer component architecture, Schema aims to keep the development process light and fast.
 
+<a href="https://www.npmjs.com/package/schema.engine">NPM schema.engine</a>
+
 A component is simply an object literal, acting like a schematic for the DOM structure it describes.
 
 ```javascript
