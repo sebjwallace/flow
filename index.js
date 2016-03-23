@@ -1,3 +1,3 @@
-var SchemaEngine = require('./lib/schema.js');
+var SchemaEngine = require('./lib/engine.js');
 
 module.exports = SchemaEngine;

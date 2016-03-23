@@ -1,6 +1,6 @@
 {
   "name": "schema.engine",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "schema oriented DOM rendering engine",
   "main": "index.js",
   "scripts": {

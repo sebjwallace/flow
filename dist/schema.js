@@ -931,7 +931,191 @@ var Variable = exports.Variable = function () {
 	return Variable;
 }();
 },{}],18:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _exr = require('./exr');
+
+var _utils = require('./utils');
+
+var _renderer = require('./renderer');
+
+var Components = [];
+
+var newElement = function newElement(parent, type) {
+  var tag = type || 'span';
+  if ((0, _exr.CHECK)(tag, 'ID') || (0, _exr.CHECK)(tag, 'CLAS')) {
+    var child = document.createElement('div');
+    (0, _utils.applySelector)(child, tag);
+  } else var child = document.createElement(tag);
+  child.parent = parent;
+  parent.appendChild(child);
+  return child;
+};
+
+exports.newElement = newElement;
+var buildComponent = function buildComponent(dom, elementArray) {
+  var componentID = (0, _utils.getComponentId)(dom.parent);
+  if (Components[componentID]) return Components[componentID];else {
+    var component = elementArray[0];
+    var injectData = elementArray[1];
+    var content = elementArray[elementArray.length - 1];
+    var instance = Object.create(component);
+    if (component.data) {
+      instance.data = JSON.parse(JSON.stringify(component.data));
+      for (var data in injectData) {
+        instance.data[data] = injectData[data];
+      }
+    }
+    instance.content = content;
+    Components[componentID] = instance;
+    return instance;
+  }
+};
+
+exports.buildComponent = buildComponent;
+var generateElement = function generateElement(obj, dom, elementArray) {
+  var tag = elementArray[0];
+  var content = elementArray[elementArray.length - 1];
+  dom.el = newElement(dom.parent, tag);
+  if (typeof content == 'string' && !(0, _exr.CHECK)(content, 'TRANS')) dom.el.innerHTML = content;
+  dom.parent = dom.el;
+  (0, _renderer.traverse)(obj, dom, elementArray);
+  dom.parent = dom.parent.parentNode;
+};
+
+exports.generateElement = generateElement;
+var buildElement = function buildElement(obj, dom, elementArray) {
+  var tag = elementArray[0];
+  if (typeof tag == 'object') {
+    var sub = newElement(dom.parent, 'div');
+    var component = buildComponent(dom, elementArray);
+    (0, _renderer.render)(component, sub);
+    for (var j = 1; j < elementArray.length; j++) {
+      (0, _utils.applySelector)(sub, elementArray[j]);
+    }
+  } else {
+    generateElement(obj, dom, elementArray);
+  }
+};
+exports.buildElement = buildElement;
+
+},{"./exr":21,"./renderer":22,"./utils":23}],19:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _utils = require('./utils');
+
+var _exr = require('./exr');
+
+var _core = require('./core');
+
+var Directives = [{
+  regex: (0, _exr.GET)('ATTR'),
+  method: function method(obj, dom, val) {
+    var attribute = (0, _utils.getAttribute)(obj, val);
+    dom.el.setAttribute(attribute.attr, attribute.value);
+  }
+}, {
+  regex: (0, _exr.GET)('DATA'),
+  method: function method(obj, dom, val) {
+    var data = (0, _utils.getDataFromVar)(obj, val);
+    if (!(0, _utils.applySelector)(dom.el, data)) dom.el.innerHTML = data;
+  }
+}, {
+  regex: (0, _exr.GET)('EVENT'),
+  method: function method(obj, dom, val) {
+    var format = val.replace('!', '').replace(/\s/, '').split(':');
+    dom.el[format[0]] = function (e) {
+      obj[format[1]](obj, e);
+    };
+  }
+}, {
+  regex: (0, _exr.GET)('IF'),
+  method: function method(obj, dom, val) {
+    var exp = val.replace(/^\?\s+/, '');
+    if ((0, _exr.CHECK)(exp, 'DATA')) {
+      var data = obj.data[(0, _exr.REPLACE)(exp, 'DATA', '')];
+      if (!data) dom.el.style.display = 'none';
+    }
+  }
+}, {
+  regex: (0, _exr.GET)('FOR'),
+  method: function method(obj, dom, val, node) {
+    var args = val.replace((0, _exr.GET)('FOR'), '').split(/\s+\in\s+/);
+    var data = obj.data[args[1].replace((0, _exr.GET)('DATA'), '')];
+    var temp = args[0].replace((0, _exr.GET)('DATA'), '');
+    for (var item in data) {
+      obj.data[temp] = data[item];
+      (0, _core.buildElement)(obj, dom, node[node.length - 1]);
+    }
+    return true;
+  }
+}];
+exports.Directives = Directives;
+
+},{"./core":18,"./exr":21,"./utils":23}],20:[function(require,module,exports){
 "use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var _renderer = require('./renderer');
+
+var SchemaEngine = function SchemaEngine() {
+  _classCallCheck(this, SchemaEngine);
+
+  this.render = _renderer.render;
+};
+
+exports["default"] = SchemaEngine;
+module.exports = exports["default"];
+
+},{"./renderer":22}],21:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var EXRs = {
+  ATTR: /^[a-z,A-Z,-]+\:\s/,
+  ID: /^\#/,
+  CLAS: /(^|\s+)\./g,
+  DATA: /^\$/,
+  EVENT: /^\!/,
+  TRANS: /^\>/,
+  IF: /^\?\s+/,
+  FOR: /^\%\s+/,
+  WRAP: /^\[[a-z,A-Z,0-9,-]+\]/
+};
+
+var CHECK = function CHECK(test, expression) {
+  return test.match(EXRs[expression]);
+};
+
+exports.CHECK = CHECK;
+var REPLACE = function REPLACE(val, expression, replacement) {
+  return val.replace(EXRs[expression], replacement);
+};
+
+exports.REPLACE = REPLACE;
+var GET = function GET(expression) {
+  return EXRs[expression];
+};
+exports.GET = GET;
+
+},{}],22:[function(require,module,exports){
+'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
@@ -939,199 +1123,130 @@ Object.defineProperty(exports, '__esModule', {
 
 var _jassJs = require('jass-js');
 
-var SchemaEngine = function SchemaEngine() {
+var _directives = require('./directives');
 
-  var components = [];
+var _core = require('./core');
 
-  var ATTR = /^[a-z,A-Z,-]+\:\s/;
-  var ID = /^\#/;
-  var CLAS = /(^|\s+)\./g;
-  var DATA = /^\$/;
-  var EVENT = /^\!/;
-  var TRANS = /^\>/;
-  var IF = /^\?\s+/;
-  var FOR = /^\%\s+/;
-  var WRAP = /^\[[a-z,A-Z,0-9,-]+\]/;
+var _utils = require('./utils');
 
-  var render = function render(obj, root, trans) {
+var _exr = require('./exr');
 
-    root.innerHTML = '';
-    obj.root = root;
+var render = function render(obj, root) {
 
-    var dom = {};
-    dom.parent = root;
-    dom.el = null;
+  root.innerHTML = '';
+  obj.root = root;
 
-    obj.setData = function (data) {
-      for (var item in data) {
-        obj.data[item] = data[item];
-      }
-      render(obj, obj.root, obj.trans);
-    };
+  var dom = {};
+  dom.parent = root;
+  dom.el = null;
 
-    var newElement = function newElement(parent, type) {
-      var tag = type || 'span';
-      if (tag.match(ID)) {
-        var child = document.createElement('div');
-        child.id = tag.replace(ID, '');
-      } else if (tag.match(CLAS)) {
-        var child = document.createElement('div');
-        child.className = tag.replace(CLAS, '');
-      } else {
-        var child = document.createElement(tag);
-      }
-      child.parent = parent;
-      parent.appendChild(child);
-      return child;
-    };
-
-    var buildElement = function buildElement(obj, dom, val) {
-      var tag = val[0];
-      var content = val[val.length - 1];
-      if (typeof tag == 'object') {
-        var component = tag;
-        var sub = newElement(dom.parent, 'div');
-        var componentID = getComponentId(dom.parent);
-        if (components[componentID]) render(components[componentID], sub, content);else {
-          var instance = Object.create(component);
-          if (component.data) {
-            instance.data = JSON.parse(JSON.stringify(component.data));
-            for (var data in val[1]) {
-              instance.data[data] = val[1][data];
-            }
-          }
-          components[componentID] = instance;
-          render(instance, sub, content);
-        }
-        for (var j = 1; j < val.length; j++) {
-          applySelector(sub, val[j]);
-        }
-      } else {
-        dom.el = newElement(dom.parent, tag);
-        if (typeof content == 'string' && !content.match(TRANS)) dom.el.innerHTML = content;
-        dom.parent = dom.el;
-        traverse(val);
-        dom.parent = dom.parent.parent;
-      }
-    };
-
-    var applySelector = function applySelector(el, val) {
-      if (typeof val != 'string') return false;
-      if (val.match(ID)) el.id = val.replace(ID, '');else if (val.match(CLAS)) el.className = val.replace(CLAS, ' ');else return false;
-      return true;
-    };
-
-    var getElementPath = function getElementPath(el) {
-      var path = el.nodeName;
-      var current = el;
-      var parent = el.parentNode;
-      while (parent) {
-        for (var child in parent.children) {
-          if (parent.children[child] == current) path = parent.nodeName + '[' + child + ']' + '/' + path;
-        }
-        current = parent;
-        parent = parent.parentNode;
-      }
-      return path;
-    };
-
-    var getComponentId = function getComponentId(el) {
-      return getElementPath(el) + el.children.length;
-    };
-
-    var getDataFromVar = function getDataFromVar(obj, value) {
-      var prop = value.replace(DATA, '');
-      var data = null;
-      if (prop.match(/\./)) {
-        var path = prop.split(/\./);
-        data = obj.data[path[0]][path[1]];
-      } else data = obj.data[prop];
-      return data;
-    };
-
-    var traverse = function traverse(node) {
-
-      for (var i = 0; i < node.length; i++) {
-
-        var val = node[i];
-
-        if (typeof val == 'string') {
-
-          if (applySelector(dom.el, val)) continue;
-
-          if (val.match(ATTR)) {
-            var attr = val.match(/^[a-z,A-Z,-]+/)[0];
-            var value = val.replace(ATTR, '');
-            if (value.match(DATA)) {
-              value = getDataFromVar(obj, value);
-            }
-            dom.el.setAttribute(attr, value);
-          } else if (val.match(DATA)) {
-            var data = getDataFromVar(obj, val);
-            if (Array.isArray(data)) {
-              val = data;dom.el.innerHTML = '';
-            } else dom.el.innerHTML = data;
-          } else if (val.match(EVENT)) {
-            var format = val.replace('!', '').replace(/\s/, '').split(':');
-            dom.el[format[0]] = function (e) {
-              obj[format[1]](obj, e);
-            };
-          } else if (val.match(TRANS)) {
-            val = trans;
-            obj.trans = trans;
-          } else if (val.match(IF)) {
-            var exp = val.replace(IF, '');
-            if (exp.match(DATA)) {
-              var data = obj.data[exp.replace(DATA, '')];
-              if (!data) dom.el.style.display = 'none';
-            }
-          } else if (val.match(FOR)) {
-            var args = val.replace(FOR, '').split(/\s+\in\s+/);
-            var data = obj.data[args[1].replace(DATA, '')];
-            var temp = args[0].replace(DATA, '');
-            for (var item in data) {
-              obj.data[temp] = data[item];
-              buildElement(obj, dom, node[node.length - 1]);
-            }
-            i = node.length;
-          } else if (val.match(WRAP)) {
-            var tag = val.replace(/[\[|\]]/g, '');
-            var newParent = newElement(dom.parent.parent, tag);
-            newParent.appendChild(dom.parent);
-            dom.parent = newParent.children[0];
-          }
-        }
-
-        if (Array.isArray(val)) {
-          buildElement(obj, dom, val);
-        }
-      }
-    };
-    traverse([obj.template]);
-
-    if (obj.styles) {
-      (function () {
-        var styles = new _jassJs.JASS.Component(obj.styles);
-        obj.root.className = styles.className();
-        obj.setStyles = function (set) {
-          styles.setStyles(set);
-        };
-      })();
+  obj.setData = function (data) {
+    for (var item in data) {
+      obj.data[item] = data[item];
     }
-
-    if (obj.init && !obj.rendered) {
-      obj.rendered = true;
-      obj.init(obj);
-    }
-
-    // console.log(root.innerHTML);
+    render(obj, obj.root);
   };
 
-  this.render = render;
+  traverse(obj, dom, [obj.template]);
+
+  if (obj.styles) {
+    (function () {
+      var styles = new _jassJs.JASS.Component(obj.styles);
+      obj.root.className = styles.className();
+      obj.setStyles = function (set) {
+        styles.setStyles(set);
+      };
+    })();
+  }
+
+  if (obj.init && !obj.rendered) {
+    obj.rendered = true;
+    obj.init(obj);
+  }
+
+  // console.log(root.innerHTML);
 };
 
-exports['default'] = SchemaEngine;
-module.exports = exports['default'];
+exports.render = render;
+var traverse = function traverse(obj, dom, node) {
 
-},{"jass-js":3}]},{},[18])(18)
+  for (var i = 0; i < node.length; i++) {
+    var val = node[i];
+    if (typeof val == 'string') {
+      if ((0, _utils.applySelector)(dom.el, val)) continue;
+
+      for (var directive in _directives.Directives) {
+        if (val.match(_directives.Directives[directive].regex)) {
+          var skip = _directives.Directives[directive].method(obj, dom, val, node);
+          if (skip) i = node.length - 1;
+        }
+      }
+
+      if ((0, _exr.CHECK)(val, 'TRANS')) val = obj.content;
+    }
+    if (Array.isArray(val)) {
+      (0, _core.buildElement)(obj, dom, val);
+    }
+  }
+};
+exports.traverse = traverse;
+
+},{"./core":18,"./directives":19,"./exr":21,"./utils":23,"jass-js":3}],23:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _exrJs = require('./exr.js');
+
+var getAttribute = function getAttribute(obj, val) {
+  var attr = val.match(/^[a-z,A-Z,-]+/)[0];
+  var value = (0, _exrJs.REPLACE)(val, 'ATTR', '');
+  if ((0, _exrJs.CHECK)(value, 'DATA')) {
+    value = getDataFromVar(obj, value);
+  }
+  return { value: value, attr: attr };
+};
+
+exports.getAttribute = getAttribute;
+var applySelector = function applySelector(el, val) {
+  if (typeof val != 'string') return false;
+  if ((0, _exrJs.CHECK)(val, 'ID')) el.id = (0, _exrJs.REPLACE)(val, 'ID', '');else if ((0, _exrJs.CHECK)(val, 'CLAS')) el.className = (0, _exrJs.REPLACE)(val, 'CLAS', ' ');else return false;
+  return true;
+};
+
+exports.applySelector = applySelector;
+var getElementPath = function getElementPath(el) {
+  var path = el.nodeName;
+  var current = el;
+  var parent = el.parentNode;
+  while (parent) {
+    for (var child in parent.children) {
+      if (parent.children[child] == current) path = parent.nodeName + '[' + child + ']' + '/' + path;
+    }
+    current = parent;
+    parent = parent.parentNode;
+  }
+  return path;
+};
+
+exports.getElementPath = getElementPath;
+var getComponentId = function getComponentId(el) {
+  return getElementPath(el) + el.children.length;
+};
+
+exports.getComponentId = getComponentId;
+var getDataFromVar = function getDataFromVar(obj, value) {
+  var prop = (0, _exrJs.REPLACE)(value, 'DATA', '');
+  var data = null;
+  if (prop.match(/\./)) {
+    var path = prop.split(/\./);
+    data = obj.data[path[0]][path[1]];
+  } else data = obj.data[prop];
+  return data;
+};
+exports.getDataFromVar = getDataFromVar;
+
+},{"./exr.js":21}]},{},[20])(20)
 });
