@@ -1,7 +1,8 @@
 import {
   getAttribute,
   applySelector,
-  getDataFromVar
+  getDataFromVar,
+  getContent
 } from './utils';
 
 import {
@@ -11,23 +12,23 @@ import {
 } from './exr';
 
 import {
-  buildElement
+  renderElementArray
 } from './core';
 
 export const Directives = [
 
   {
     regex: GET('ATTR'),
-    method: (obj,dom,val) => {
-        const attribute = getAttribute(obj,val);
+    method: (component,dom,val) => {
+        const attribute = getAttribute(component,val);
         dom.el.setAttribute(attribute.attr,attribute.value);
     }
   },
 
   {
     regex: GET('DATA'),
-    method: (obj,dom,val) => {
-      const data = getDataFromVar(obj,val);
+    method: (component,dom,val) => {
+      const data = getDataFromVar(component,val);
        if(!applySelector(dom.el,data))
         dom.el.innerHTML = data;
     }
@@ -35,20 +36,20 @@ export const Directives = [
 
    {
     regex: GET('EVENT'),
-    method: (obj,dom,val) => {
+    method: (component,dom,val) => {
       var format = val.replace('!','').replace(/\s/,'').split(':');
       dom.el[format[0]] = (e) => {
-        obj[format[1]](obj,e);
+        component[format[1]](component,e);
       }
     }
   },
 
   {
     regex: GET('IF'),
-    method: (obj,dom,val) => {
+    method: (component,dom,val) => {
       const exp = val.replace(/^\?\s+/,'');
       if(CHECK(exp,'DATA')){
-        const data = obj.data[REPLACE(exp,'DATA','')];
+        const data = component.data[REPLACE(exp,'DATA','')];
         if(!data) dom.el.style.display = 'none';
       }
     }
@@ -56,13 +57,13 @@ export const Directives = [
 
   {
     regex: GET('FOR'),
-    method: (obj,dom,val,node) => {
+    method: (component,dom,val,template) => {
       const args = val.replace(GET('FOR'),'').split(/\s+\in\s+/);
-      const data = obj.data[args[1].replace(GET('DATA'),'')];
+      const data = component.data[args[1].replace(GET('DATA'),'')];
       const temp = args[0].replace(GET('DATA'),'');
       for(let item in data){
-        obj.data[temp] = data[item];
-        buildElement(obj,dom,node[node.length-1])
+        component.data[temp] = data[item];
+        renderElementArray(component,dom,getContent(template))
       }
       return true;
     }

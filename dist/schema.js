@@ -937,73 +937,98 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
+var _utils = require('./utils');
+
+var Components = [];
+
+var setComponent = function setComponent(componentID, component) {
+  Components[componentID] = component;
+};
+
+var getComponent = function getComponent(componentID) {
+  return Components[componentID];
+};
+
+var getComponentId = function getComponentId(el) {
+  return (0, _utils.getElementPath)(el) + el.children.length;
+};
+
+var instanciateComponent = function instanciateComponent(schema, injectData) {
+  var instance = Object.create(schema);
+  if (schema.data) {
+    instance.data = JSON.parse(JSON.stringify(schema.data));
+    for (var data in injectData) {
+      instance.data[data] = injectData[data];
+    }
+  }
+  return instance;
+};
+
+var isComponent = function isComponent(tag) {
+  if (typeof tag == 'object') return true;else return false;
+};
+
+exports.isComponent = isComponent;
+var buildComponent = function buildComponent(dom, elementArray) {
+  var componentID = getComponentId(dom.parent);
+  var component = getComponent(componentID);
+  if (component) return component;else {
+    var schema = elementArray[0];
+    var injectData = elementArray[1];
+    var content = (0, _utils.getContent)(elementArray);
+    var instance = instanciateComponent(schema, injectData);
+    instance.content = content;
+    setComponent(componentID, instance);
+    return instance;
+  }
+};
+exports.buildComponent = buildComponent;
+
+},{"./utils":25}],19:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
 var _exr = require('./exr');
 
 var _utils = require('./utils');
 
+var _component = require('./component');
+
+var _element = require('./element');
+
 var _renderer = require('./renderer');
 
-var Components = [];
+var buildElement = function buildElement(component, dom, elementArray) {
+  var tag = (0, _utils.getTag)(elementArray);
+  var content = (0, _utils.getContent)(elementArray);
 
-var newElement = function newElement(parent, type) {
-  var tag = type || 'span';
-  if ((0, _exr.CHECK)(tag, 'ID') || (0, _exr.CHECK)(tag, 'CLAS')) {
-    var child = document.createElement('div');
-    (0, _utils.applySelector)(child, tag);
-  } else var child = document.createElement(tag);
-  child.parent = parent;
-  parent.appendChild(child);
-  return child;
-};
+  dom.el = (0, _element.newDomElement)(dom.parent, tag);
+  dom.el.innerHTML = (0, _utils.validateContent)(content);
 
-exports.newElement = newElement;
-var buildComponent = function buildComponent(dom, elementArray) {
-  var componentID = (0, _utils.getComponentId)(dom.parent);
-  if (Components[componentID]) return Components[componentID];else {
-    var component = elementArray[0];
-    var injectData = elementArray[1];
-    var content = elementArray[elementArray.length - 1];
-    var instance = Object.create(component);
-    if (component.data) {
-      instance.data = JSON.parse(JSON.stringify(component.data));
-      for (var data in injectData) {
-        instance.data[data] = injectData[data];
-      }
-    }
-    instance.content = content;
-    Components[componentID] = instance;
-    return instance;
-  }
-};
-
-exports.buildComponent = buildComponent;
-var generateElement = function generateElement(obj, dom, elementArray) {
-  var tag = elementArray[0];
-  var content = elementArray[elementArray.length - 1];
-  dom.el = newElement(dom.parent, tag);
-  if (typeof content == 'string' && !(0, _exr.CHECK)(content, 'TRANS')) dom.el.innerHTML = content;
   dom.parent = dom.el;
-  (0, _renderer.traverse)(obj, dom, elementArray);
+  (0, _renderer.traverse)(component, dom, elementArray);
   dom.parent = dom.parent.parentNode;
 };
 
-exports.generateElement = generateElement;
-var buildElement = function buildElement(obj, dom, elementArray) {
-  var tag = elementArray[0];
-  if (typeof tag == 'object') {
-    var sub = newElement(dom.parent, 'div');
-    var component = buildComponent(dom, elementArray);
-    (0, _renderer.render)(component, sub);
+var renderElementArray = function renderElementArray(component, dom, elementArray) {
+  var tag = (0, _utils.getTag)(elementArray);
+  if ((0, _component.isComponent)(tag)) {
+    var subElement = (0, _element.newDomElement)(dom.parent, 'div');
+    var subComponent = (0, _component.buildComponent)(dom, elementArray);
+    (0, _renderer.render)(subComponent, subElement);
     for (var j = 1; j < elementArray.length; j++) {
-      (0, _utils.applySelector)(sub, elementArray[j]);
+      (0, _utils.applySelector)(subElement, elementArray[j]);
     }
   } else {
-    generateElement(obj, dom, elementArray);
+    buildElement(component, dom, elementArray);
   }
 };
-exports.buildElement = buildElement;
+exports.renderElementArray = renderElementArray;
 
-},{"./exr":21,"./renderer":22,"./utils":23}],19:[function(require,module,exports){
+},{"./component":18,"./element":21,"./exr":23,"./renderer":24,"./utils":25}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1018,49 +1043,72 @@ var _core = require('./core');
 
 var Directives = [{
   regex: (0, _exr.GET)('ATTR'),
-  method: function method(obj, dom, val) {
-    var attribute = (0, _utils.getAttribute)(obj, val);
+  method: function method(component, dom, val) {
+    var attribute = (0, _utils.getAttribute)(component, val);
     dom.el.setAttribute(attribute.attr, attribute.value);
   }
 }, {
   regex: (0, _exr.GET)('DATA'),
-  method: function method(obj, dom, val) {
-    var data = (0, _utils.getDataFromVar)(obj, val);
+  method: function method(component, dom, val) {
+    var data = (0, _utils.getDataFromVar)(component, val);
     if (!(0, _utils.applySelector)(dom.el, data)) dom.el.innerHTML = data;
   }
 }, {
   regex: (0, _exr.GET)('EVENT'),
-  method: function method(obj, dom, val) {
+  method: function method(component, dom, val) {
     var format = val.replace('!', '').replace(/\s/, '').split(':');
     dom.el[format[0]] = function (e) {
-      obj[format[1]](obj, e);
+      component[format[1]](component, e);
     };
   }
 }, {
   regex: (0, _exr.GET)('IF'),
-  method: function method(obj, dom, val) {
+  method: function method(component, dom, val) {
     var exp = val.replace(/^\?\s+/, '');
     if ((0, _exr.CHECK)(exp, 'DATA')) {
-      var data = obj.data[(0, _exr.REPLACE)(exp, 'DATA', '')];
+      var data = component.data[(0, _exr.REPLACE)(exp, 'DATA', '')];
       if (!data) dom.el.style.display = 'none';
     }
   }
 }, {
   regex: (0, _exr.GET)('FOR'),
-  method: function method(obj, dom, val, node) {
+  method: function method(component, dom, val, template) {
     var args = val.replace((0, _exr.GET)('FOR'), '').split(/\s+\in\s+/);
-    var data = obj.data[args[1].replace((0, _exr.GET)('DATA'), '')];
+    var data = component.data[args[1].replace((0, _exr.GET)('DATA'), '')];
     var temp = args[0].replace((0, _exr.GET)('DATA'), '');
     for (var item in data) {
-      obj.data[temp] = data[item];
-      (0, _core.buildElement)(obj, dom, node[node.length - 1]);
+      component.data[temp] = data[item];
+      (0, _core.renderElementArray)(component, dom, (0, _utils.getContent)(template));
     }
     return true;
   }
 }];
 exports.Directives = Directives;
 
-},{"./core":18,"./exr":21,"./utils":23}],20:[function(require,module,exports){
+},{"./core":19,"./exr":23,"./utils":25}],21:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _exr = require('./exr');
+
+var _utils = require('./utils');
+
+var newDomElement = function newDomElement(parent, type) {
+  var tag = type || 'span';
+  if ((0, _exr.CHECK)(tag, 'ID') || (0, _exr.CHECK)(tag, 'CLAS')) {
+    var child = document.createElement('div');
+    (0, _utils.applySelector)(child, tag);
+  } else var child = document.createElement(tag);
+  child.parent = parent;
+  parent.appendChild(child);
+  return child;
+};
+exports.newDomElement = newDomElement;
+
+},{"./exr":23,"./utils":25}],22:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1080,7 +1128,7 @@ var SchemaEngine = function SchemaEngine() {
 exports["default"] = SchemaEngine;
 module.exports = exports["default"];
 
-},{"./renderer":22}],21:[function(require,module,exports){
+},{"./renderer":24}],23:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1114,7 +1162,7 @@ var GET = function GET(expression) {
 };
 exports.GET = GET;
 
-},{}],22:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1131,67 +1179,68 @@ var _utils = require('./utils');
 
 var _exr = require('./exr');
 
-var render = function render(obj, root) {
+var render = function render(component, root) {
 
   root.innerHTML = '';
-  obj.root = root;
+  component.root = root;
 
-  var dom = {};
-  dom.parent = root;
-  dom.el = null;
-
-  obj.setData = function (data) {
-    for (var item in data) {
-      obj.data[item] = data[item];
-    }
-    render(obj, obj.root);
+  var dom = {
+    parent: root,
+    el: null
   };
 
-  traverse(obj, dom, [obj.template]);
+  component.setData = function (data) {
+    for (var item in data) {
+      component.data[item] = data[item];
+    }
+    render(component, component.root);
+  };
 
-  if (obj.styles) {
+  traverse(component, dom, [component.template]);
+
+  if (component.styles) {
     (function () {
-      var styles = new _jassJs.JASS.Component(obj.styles);
-      obj.root.className = styles.className();
-      obj.setStyles = function (set) {
+      var styles = new _jassJs.JASS.Component(component.styles);
+      component.root.className = styles.className();
+      component.setStyles = function (set) {
         styles.setStyles(set);
       };
     })();
   }
 
-  if (obj.init && !obj.rendered) {
-    obj.rendered = true;
-    obj.init(obj);
+  if (component.init && !component.rendered) {
+    component.rendered = true;
+    component.init(component);
   }
 
   // console.log(root.innerHTML);
 };
 
 exports.render = render;
-var traverse = function traverse(obj, dom, node) {
+var traverse = function traverse(component, dom, template) {
 
-  for (var i = 0; i < node.length; i++) {
-    var val = node[i];
+  for (var i = 0; i < template.length; i++) {
+    var val = template[i];
     if (typeof val == 'string') {
       if ((0, _utils.applySelector)(dom.el, val)) continue;
 
       for (var directive in _directives.Directives) {
         if (val.match(_directives.Directives[directive].regex)) {
-          var skip = _directives.Directives[directive].method(obj, dom, val, node);
-          if (skip) i = node.length - 1;
+          var skip = _directives.Directives[directive].method(component, dom, val, template);
+          if (skip) i = template.length - 1;
         }
       }
 
-      if ((0, _exr.CHECK)(val, 'TRANS')) val = obj.content;
+      if ((0, _exr.CHECK)(val, 'TRANS')) val = component.content;
     }
     if (Array.isArray(val)) {
-      (0, _core.buildElement)(obj, dom, val);
+      (0, _core.renderElementArray)(component, dom, val);
     }
   }
 };
 exports.traverse = traverse;
 
-},{"./core":18,"./directives":19,"./exr":21,"./utils":23,"jass-js":3}],23:[function(require,module,exports){
+},{"./core":19,"./directives":20,"./exr":23,"./utils":25,"jass-js":3}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1232,11 +1281,6 @@ var getElementPath = function getElementPath(el) {
 };
 
 exports.getElementPath = getElementPath;
-var getComponentId = function getComponentId(el) {
-  return getElementPath(el) + el.children.length;
-};
-
-exports.getComponentId = getComponentId;
 var getDataFromVar = function getDataFromVar(obj, value) {
   var prop = (0, _exrJs.REPLACE)(value, 'DATA', '');
   var data = null;
@@ -1246,7 +1290,22 @@ var getDataFromVar = function getDataFromVar(obj, value) {
   } else data = obj.data[prop];
   return data;
 };
-exports.getDataFromVar = getDataFromVar;
 
-},{"./exr.js":21}]},{},[20])(20)
+exports.getDataFromVar = getDataFromVar;
+var getTag = function getTag(elementArray) {
+  return elementArray[0];
+};
+
+exports.getTag = getTag;
+var getContent = function getContent(elementArray) {
+  return elementArray[elementArray.length - 1];
+};
+
+exports.getContent = getContent;
+var validateContent = function validateContent(content) {
+  if (typeof content == 'string' && !(0, _exrJs.CHECK)(content, 'TRANS')) return content;else return '';
+};
+exports.validateContent = validateContent;
+
+},{"./exr.js":23}]},{},[22])(22)
 });

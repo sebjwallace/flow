@@ -35,10 +35,6 @@ export const getElementPath = (el) => {
   return path;
 }
 
-export const getComponentId = (el) => {
-  return getElementPath(el) + el.children.length;
-}
-
 export const getDataFromVar = (obj,value) => {
   const prop = REPLACE(value,'DATA','');
   let data = null;
@@ -48,4 +44,18 @@ export const getDataFromVar = (obj,value) => {
   }
   else data = obj.data[prop];
   return data;
+}
+
+export const getTag = (elementArray) => {
+  return elementArray[0];
+}
+
+export const getContent = (elementArray) => {
+    return elementArray[elementArray.length -1];
+}
+
+export const validateContent = (content) => {
+  if(typeof content == 'string' && !CHECK(content,'TRANS'))
+    return content;
+  else return '';
 }

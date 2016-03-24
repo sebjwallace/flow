@@ -9,69 +9,47 @@ import {
   getAttribute,
   applySelector,
   getDataFromVar,
-  getComponentId
+  getComponentId,
+  getTag,
+  getContent,
+  validateContent
 } from './utils';
+
+import {
+  isComponent,
+  buildComponent
+} from './component';
+
+import {
+  newDomElement
+} from './element';
 
 import {render,traverse} from './renderer';
 
-const Components = [];
 
-export const newElement = (parent,type) => {
-  var tag = type || 'span';
-  if(CHECK(tag,'ID') || CHECK(tag,'CLAS')){
-    var child = document.createElement('div');
-    applySelector(child,tag);
-  }
-  else
-    var child = document.createElement(tag);
-  child.parent = parent;
-  parent.appendChild(child);
-  return child;
-}
+const buildElement = (component,dom,elementArray) => {
+  const tag = getTag(elementArray);
+  const content = getContent(elementArray);
 
-export const buildComponent = (dom,elementArray) => {
-  const componentID = getComponentId(dom.parent);
-  if(Components[componentID])
-    return Components[componentID];
-  else{
-    const component = elementArray[0];
-    const injectData = elementArray[1];
-    const content = elementArray[elementArray.length-1];
-    var instance = Object.create(component);
-    if(component.data){
-      instance.data = JSON.parse(JSON.stringify(component.data));
-      for(var data in injectData){
-        instance.data[data] = injectData[data];
-      }
-    }
-    instance.content = content;
-    Components[componentID] = instance;
-    return instance;
-  }
-}
+  dom.el = newDomElement(dom.parent,tag);
+  dom.el.innerHTML = validateContent(content);
 
-export const generateElement = (obj,dom,elementArray) => {
-  const tag = elementArray[0];
-  const content = elementArray[elementArray.length-1];
-  dom.el = newElement(dom.parent,tag);
-  if(typeof content == 'string' && !CHECK(content,'TRANS'))
-    dom.el.innerHTML = content;
   dom.parent = dom.el;
-  traverse(obj,dom,elementArray);
+  traverse(component,dom,elementArray);
   dom.parent = dom.parent.parentNode;
 }
 
-export const buildElement = (obj,dom,elementArray) => {
-  const tag = elementArray[0];
-  if(typeof tag == 'object'){
-    const sub = newElement(dom.parent,'div');
-    const component = buildComponent(dom,elementArray);
-    render(component,sub);
+export const renderElementArray = (component,dom,elementArray) => {
+  const tag = getTag(elementArray);
+  if(isComponent(tag)){
+    const subElement = newDomElement(dom.parent,'div');
+    const subComponent = buildComponent(dom,elementArray);
+    render(subComponent,subElement);
     for(var j = 1; j < elementArray.length; j++){
-      applySelector(sub,elementArray[j]);
+      applySelector(subElement,elementArray[j]);
     }
   }
   else{
-    generateElement(obj,dom,elementArray);
+    buildElement(component,dom,elementArray);
   }
 }

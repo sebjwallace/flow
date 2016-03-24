@@ -3,7 +3,7 @@ import {JASS} from 'jass-js';
 import {Directives} from './directives';
 
 import {
-  buildElement
+  renderElementArray
 } from './core';
 
 import {
@@ -14,56 +14,57 @@ import {
   CHECK
 } from './exr';
 
-export const render = (obj,root) => {
+export const render = (component,root) => {
 
   root.innerHTML = '';
-  obj.root = root;
+  component.root = root;
 
-  const dom = {};
-  dom.parent = root;
-  dom.el = null;
+  const dom = {
+    parent: root,
+    el: null
+  };
 
-  obj.setData = (data) => {
+  component.setData = (data) => {
     for(var item in data){
-      obj.data[item] = data[item];
+      component.data[item] = data[item];
     }
-    render(obj,obj.root);
+    render(component,component.root);
   }
 
-  traverse(obj,dom,[obj.template]);
+  traverse(component,dom,[component.template]);
 
-  if(obj.styles){
-    const styles = new JASS.Component(obj.styles);
-    obj.root.className = styles.className();
-    obj.setStyles = (set) => { styles.setStyles(set) };
+  if(component.styles){
+    const styles = new JASS.Component(component.styles);
+    component.root.className = styles.className();
+    component.setStyles = (set) => { styles.setStyles(set) };
   }
 
-  if(obj.init && !obj.rendered){
-    obj.rendered = true;
-    obj.init(obj);
+  if(component.init && !component.rendered){
+    component.rendered = true;
+    component.init(component);
   }
 
   // console.log(root.innerHTML);
 }
 
-export const traverse = (obj,dom,node) => {
+export const traverse = (component,dom,template) => {
 
-   for(let i=0; i < node.length; i++){
-     let val = node[i];
+   for(let i = 0; i < template.length; i++){
+     let val = template[i];
      if(typeof val == 'string'){
          if(applySelector(dom.el,val)) continue;
 
          for(let directive in Directives){
            if(val.match(Directives[directive].regex)){
-             const skip = Directives[directive].method(obj,dom,val,node);
-             if(skip) i = node.length-1;
+             const skip = Directives[directive].method(component,dom,val,template);
+             if(skip) i = template.length-1;
            }
          }
 
-         if(CHECK(val,'TRANS')) val = obj.content;
+         if(CHECK(val,'TRANS')) val = component.content;
      }
      if(Array.isArray(val)){
-       buildElement(obj,dom,val);
+       renderElementArray(component,dom,val);
      }
 
    }
