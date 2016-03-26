@@ -12,10 +12,19 @@
 
       const Schem = {
         data: { title: 'this is a nav' },
-        template: [ 'div',
+        template: [ '#whole',
           ['#mainBlock', '$name'],
           ['i', '$message'],
           ['div', '>']
+        ],
+        styles: [
+          ['', 'background-color #ddd'],
+          ['#whole',
+            ['!onclick',
+              'background-color rgba(0,0,0,0.7)',
+              'color white'
+            ]
+          ]
         ],
         onChange: (self) => {
           self.setData({ name: self.data.name + ' yo man' })
@@ -42,22 +51,24 @@
                   ['h3', '$item.name'],
                   ['a', '$item.hobby']
                 ]
-              ]
+              ],
+              ['button', '#toggle', 'Toggle']
           ],
           [Schem, {name: 'tom'}, '#bottomNav', ['span', 'bottom naavvv']]
         ],
-        styles: {
-          '#intro': {
-            color: 'green',
-            padding: '10px'
-          },
-          '#topNav': {
-            color: 'orange'
-          }
-        },
+        styles: [
+          ['#topNav', 'color orange'],
+          ['#intro', 'color green', 'padding 10px'],
+          ['#toggle',
+            ['!onclick', '@toggle']
+          ],
+          ['#bottomNav', 'color #aedb33', 'font-size 2em',
+            ['@toggle', 'font-size 1em', 'color #333', 'background-color #f1f1f1']
+          ]
+        ],
         clicked: (self,e) => {
           self.setData({intro: 'clicked'});
-          self.setStyles({ '#intro': {color: 'brown'} })
+          self.setStyles([['#intro', 'color brown']])
           self.heylo();
         },
         heylo: () => {

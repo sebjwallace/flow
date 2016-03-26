@@ -84,7 +84,9 @@ var Compiler = exports.Compiler = function () {
 						parentOBJ = obj[props];
 					}
 
-					if (Types.Mixin.isMixin(props)) {
+					if (Types.Include.isInclude(props)) {
+						stitch(obj[props]);
+					} else if (Types.Mixin.isMixin(props)) {
 						var mixin = _this.Store.getMixin(Types.Mixin.format(props));
 						if (typeof obj[props] == 'string') stitch(mixin(obj[props]));else if (Array.isArray(obj[props])) stitch(mixin.apply(_this, obj[props]));else continue;
 					} else if (Types.Group.isGroup(props)) {
@@ -124,7 +126,7 @@ var Compiler = exports.Compiler = function () {
 
 	return Compiler;
 }();
-},{"./Types/Module":15}],2:[function(require,module,exports){
+},{"./Types/Module":16}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -357,7 +359,7 @@ var PreCompiler = exports.PreCompiler = function () {
 
 	return PreCompiler;
 }();
-},{"./Types/Module":15}],5:[function(require,module,exports){
+},{"./Types/Module":16}],5:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -746,6 +748,31 @@ var Group = exports.Group = function () {
 	return Group;
 }();
 },{}],14:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var Include = exports.Include = function () {
+	function Include() {
+		_classCallCheck(this, Include);
+	}
+
+	_createClass(Include, null, [{
+		key: "isInclude",
+		value: function isInclude(check) {
+			return check.match(/^\@include$/);
+		}
+	}]);
+
+	return Include;
+}();
+},{}],15:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -776,7 +803,7 @@ var Mixin = exports.Mixin = function () {
 
 	return Mixin;
 }();
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -855,6 +882,18 @@ Object.keys(_Group).forEach(function (key) {
   });
 });
 
+var _Include = require('./Include');
+
+Object.keys(_Include).forEach(function (key) {
+  if (key === "default") return;
+  Object.defineProperty(exports, key, {
+    enumerable: true,
+    get: function get() {
+      return _Include[key];
+    }
+  });
+});
+
 var _Nesting = require('./Nesting');
 
 Object.keys(_Nesting).forEach(function (key) {
@@ -866,7 +905,7 @@ Object.keys(_Nesting).forEach(function (key) {
     }
   });
 });
-},{"./Binding":10,"./Event":11,"./Extend":12,"./Group":13,"./Mixin":14,"./Nesting":16,"./Variable":17}],16:[function(require,module,exports){
+},{"./Binding":10,"./Event":11,"./Extend":12,"./Group":13,"./Include":14,"./Mixin":15,"./Nesting":17,"./Variable":18}],17:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -896,7 +935,7 @@ var Nesting = exports.Nesting = function () {
 
 	return Nesting;
 }();
-},{}],17:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, "__esModule", {
@@ -930,7 +969,7 @@ var Variable = exports.Variable = function () {
 
 	return Variable;
 }();
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -949,8 +988,9 @@ var getComponent = function getComponent(componentID) {
   return Components[componentID];
 };
 
-var getComponentId = function getComponentId(el) {
+var getComponentId = function getComponentId(el, key) {
   return (0, _utils.getElementPath)(el) + el.children.length;
+  // return key + el.children.length;
 };
 
 var instanciateComponent = function instanciateComponent(schema, injectData) {
@@ -969,8 +1009,8 @@ var isComponent = function isComponent(tag) {
 };
 
 exports.isComponent = isComponent;
-var buildComponent = function buildComponent(dom, elementArray) {
-  var componentID = getComponentId(dom.parent);
+var buildComponent = function buildComponent(dom, elementArray, key) {
+  var componentID = getComponentId(dom.parent, key);
   var component = getComponent(componentID);
   if (component) return component;else {
     var schema = elementArray[0];
@@ -984,7 +1024,7 @@ var buildComponent = function buildComponent(dom, elementArray) {
 };
 exports.buildComponent = buildComponent;
 
-},{"./utils":25}],19:[function(require,module,exports){
+},{"./utils":27}],20:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1017,7 +1057,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
   var tag = (0, _utils.getTag)(elementArray);
   if ((0, _component.isComponent)(tag)) {
     var subElement = (0, _element.newDomElement)(dom.parent, 'div');
-    var subComponent = (0, _component.buildComponent)(dom, elementArray);
+    var subComponent = (0, _component.buildComponent)(dom, elementArray, component.key);
     (0, _renderer.render)(subComponent, subElement);
     for (var j = 1; j < elementArray.length; j++) {
       (0, _utils.applySelector)(subElement, elementArray[j]);
@@ -1028,7 +1068,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
 };
 exports.renderElementArray = renderElementArray;
 
-},{"./component":18,"./element":21,"./exr":23,"./renderer":24,"./utils":25}],20:[function(require,module,exports){
+},{"./component":19,"./element":22,"./exr":24,"./renderer":25,"./utils":27}],21:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1085,7 +1125,7 @@ var Directives = [{
 }];
 exports.Directives = Directives;
 
-},{"./core":19,"./exr":23,"./utils":25}],21:[function(require,module,exports){
+},{"./core":20,"./exr":24,"./utils":27}],22:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1108,14 +1148,14 @@ var newDomElement = function newDomElement(parent, type) {
 };
 exports.newDomElement = newDomElement;
 
-},{"./exr":23,"./utils":25}],22:[function(require,module,exports){
+},{"./exr":24,"./utils":27}],23:[function(require,module,exports){
 "use strict";
 
-Object.defineProperty(exports, "__esModule", {
+Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 var _renderer = require('./renderer');
 
@@ -1123,12 +1163,15 @@ var SchemaEngine = function SchemaEngine() {
   _classCallCheck(this, SchemaEngine);
 
   this.render = _renderer.render;
+  var cssContainer = document.createElement('div');
+  cssContainer.id = '--rendered-styles';
+  document.body.appendChild(cssContainer);
 };
 
-exports["default"] = SchemaEngine;
-module.exports = exports["default"];
+exports['default'] = SchemaEngine;
+module.exports = exports['default'];
 
-},{"./renderer":24}],23:[function(require,module,exports){
+},{"./renderer":25}],24:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -1162,7 +1205,7 @@ var GET = function GET(expression) {
 };
 exports.GET = GET;
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1173,6 +1216,8 @@ var _jassJs = require('jass-js');
 
 var _directives = require('./directives');
 
+var _styles = require('./styles');
+
 var _core = require('./core');
 
 var _utils = require('./utils');
@@ -1181,32 +1226,35 @@ var _exr = require('./exr');
 
 var render = function render(component, root) {
 
+  // the top most root (parent component) must be cleared on rerender
   root.innerHTML = '';
   component.root = root;
 
+  // a key is used for style scope
+  if (!component.key) component.key = (0, _utils.generateKey)(8);
+  component.root.className = component.key;
+
+  // dom object keeps track of dom parent/child relationships during traversal
   var dom = {
     parent: root,
     el: null
   };
 
+  // attach setData to the schema object
   component.setData = function (data) {
     for (var item in data) {
       component.data[item] = data[item];
     }
     render(component, component.root);
   };
+  component.setStyles = function (styles) {
+    (0, _styles.renderCSS)(styles, component);
+  };
 
   traverse(component, dom, [component.template]);
 
-  if (component.styles) {
-    (function () {
-      var styles = new _jassJs.JASS.Component(component.styles);
-      component.root.className = styles.className();
-      component.setStyles = function (set) {
-        styles.setStyles(set);
-      };
-    })();
-  }
+  var css = (0, _styles.renderCSS)(component.styles, component);
+  if (component.styles && !component.renderedCSS) component.renderedCSS = true;
 
   if (component.init && !component.rendered) {
     component.rendered = true;
@@ -1240,7 +1288,97 @@ var traverse = function traverse(component, dom, template) {
 };
 exports.traverse = traverse;
 
-},{"./core":19,"./directives":20,"./exr":23,"./utils":25,"jass-js":3}],25:[function(require,module,exports){
+},{"./core":20,"./directives":21,"./exr":24,"./styles":26,"./utils":27,"jass-js":3}],26:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var events = {};
+
+var setEvent = function setEvent(event, fn) {
+  if (!events[event]) events[event] = [];
+  events[event].push(fn);
+};
+
+var triggerEvent = function triggerEvent(event) {
+  events[event].forEach(function (e) {
+    e();
+  });
+};
+
+var nestings = [];
+
+var compile = function compile(styles, component, naked) {
+  var css = '';
+  styles.map(function (style) {
+    var id = style[0];
+    if (!naked) css += '.' + component.key + ' ' + id + '{';
+    style.map(function (attr, i) {
+      if (i == 0) return;
+      if (Array.isArray(attr)) {
+        if (attr[0].match(/^\*$/)) css += compile([attr], component, true);else if (attr[0].match(/^\>\s+/)) {
+          attr[0] = style[0] + attr[0].replace('>', '');
+          nestings.push(attr);
+        } else if (attr[0].match(/^\!/)) {
+          (function () {
+            var event = attr[0].replace('!', '');
+            var morph = attr.slice();
+            morph[0] = style[0];
+            var scope = document.getElementsByClassName(component.key)[0];
+            var el = scope.querySelectorAll(style[0])[0];
+            var isTrigger = attr[1].match(/^\@/);
+            if (isTrigger) el[event] = function () {
+              triggerEvent(attr[1]);
+            };else el[event] = function () {
+              component.setStyles([morph]);
+            };
+          })();
+        } else if (attr[0].match(/^\@/)) {
+          (function () {
+            var binding = attr[0].replace(/^\@/, '');
+            var morph = attr.slice();
+            morph[0] = style[0];
+            setEvent(attr[0], function () {
+              component.setStyles([morph]);
+            });
+          })();
+        } else css += compile([attr], component);
+        return;
+      } else {
+        css += attr.replace(/\s+/, ':') + ';';
+      }
+    });
+    if (!naked) css += '}';
+  });
+  return css;
+};
+
+var renderCSS = function renderCSS(styles, component) {
+  var css = '';
+  css += compile(styles, component);
+  if (nestings.length > 0) {
+    css += compile(nestings, component);
+    nestings = [];
+  }
+  mount(css, component);
+};
+
+exports.renderCSS = renderCSS;
+var mount = function mount(cssString, component) {
+  var id = 'rs-' + component.key + cssString.length;
+  var mounted = document.getElementById(id);
+  if (!mounted) {
+    var stylesContainer = document.getElementById('--rendered-styles');
+    mounted = document.createElement('style');
+    mounted.id = id;
+    stylesContainer.appendChild(mounted);
+  }
+  mounted.innerHTML = cssString;
+};
+
+},{}],27:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -1249,6 +1387,16 @@ Object.defineProperty(exports, '__esModule', {
 
 var _exrJs = require('./exr.js');
 
+var generateKey = function generateKey(length) {
+  var key = '';
+  var chars = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
+  for (var i = 0; i < length; i++) {
+    key += chars[Math.floor(Math.random() * (chars.length - 1) + 1)];
+  }
+  return key;
+};
+
+exports.generateKey = generateKey;
 var getAttribute = function getAttribute(obj, val) {
   var attr = val.match(/^[a-z,A-Z,-]+/)[0];
   var value = (0, _exrJs.REPLACE)(val, 'ATTR', '');
@@ -1307,5 +1455,5 @@ var validateContent = function validateContent(content) {
 };
 exports.validateContent = validateContent;
 
-},{"./exr.js":23}]},{},[22])(22)
+},{"./exr.js":24}]},{},[23])(23)
 });

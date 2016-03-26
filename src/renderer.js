@@ -3,11 +3,16 @@ import {JASS} from 'jass-js';
 import {Directives} from './directives';
 
 import {
+  renderCSS
+} from './styles';
+
+import {
   renderElementArray
 } from './core';
 
 import {
-  applySelector
+  applySelector,
+  generateKey
 } from './utils';
 
 import {
@@ -16,28 +21,37 @@ import {
 
 export const render = (component,root) => {
 
+  // the top most root (parent component) must be cleared on rerender
   root.innerHTML = '';
   component.root = root;
 
+  // a key is used for style scope
+  if(!component.key)
+    component.key = generateKey(8);
+  component.root.className = component.key;
+
+  // dom object keeps track of dom parent/child relationships during traversal
   const dom = {
     parent: root,
     el: null
   };
 
+  // attach setData to the schema object
   component.setData = (data) => {
     for(var item in data){
       component.data[item] = data[item];
     }
     render(component,component.root);
   }
+  component.setStyles = (styles) => {
+    renderCSS(styles,component)
+  };
 
   traverse(component,dom,[component.template]);
 
-  if(component.styles){
-    const styles = new JASS.Component(component.styles);
-    component.root.className = styles.className();
-    component.setStyles = (set) => { styles.setStyles(set) };
-  }
+  const css = renderCSS(component.styles,component);
+  if(component.styles && !component.renderedCSS)
+    component.renderedCSS = true;
 
   if(component.init && !component.rendered){
     component.rendered = true;

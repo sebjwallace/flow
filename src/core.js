@@ -43,7 +43,7 @@ export const renderElementArray = (component,dom,elementArray) => {
   const tag = getTag(elementArray);
   if(isComponent(tag)){
     const subElement = newDomElement(dom.parent,'div');
-    const subComponent = buildComponent(dom,elementArray);
+    const subComponent = buildComponent(dom,elementArray,component.key);
     render(subComponent,subElement);
     for(var j = 1; j < elementArray.length; j++){
       applySelector(subElement,elementArray[j]);

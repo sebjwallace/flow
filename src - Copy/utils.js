@@ -1,16 +1,6 @@
 
 import {CHECK, REPLACE} from './exr.js';
 
-
-export const generateKey = (length) => {
-  var key = '';
-  var chars = 'qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM';
-  for(var i = 0; i < length; i++){
-    key += chars[Math.floor((Math.random() * (chars.length-1)) + 1)];
-  }
-  return key;
-}
-
 export const getAttribute = (obj,val) => {
   const attr = val.match(/^[a-z,A-Z,-]+/)[0];
   let value = REPLACE(val,'ATTR','');
