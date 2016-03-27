@@ -15,7 +15,7 @@ import {
   renderElementArray
 } from './core';
 
-export const Directives = [
+const Directives = [
 
   {
     regex: GET('ATTR'),
@@ -70,3 +70,14 @@ export const Directives = [
   }
 
 ]
+
+export const driveDirectives = (val,dom,component,template) => {
+  let skipped = false;
+    Directives.forEach((directive) => {
+        if(val.match(directive.regex)){
+          const skip = directive.method(component,dom,val,template);
+          if(skip) skipped = true;
+        }
+    });
+   return skipped;
+}

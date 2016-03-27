@@ -1,6 +1,7 @@
 
-import {JASS} from 'jass-js';
-import {Directives} from './directives';
+import {
+  driveDirectives
+} from './directives';
 
 import {
   renderCSS
@@ -49,9 +50,8 @@ export const render = (component,root) => {
 
   traverse(component,dom,[component.template]);
 
-  const css = renderCSS(component.styles,component);
-  if(component.styles && !component.renderedCSS)
-    component.renderedCSS = true;
+  if(component.styles)
+    renderCSS(component.styles,component);
 
   if(component.init && !component.rendered){
     component.rendered = true;
@@ -68,12 +68,8 @@ export const traverse = (component,dom,template) => {
      if(typeof val == 'string'){
          if(applySelector(dom.el,val)) continue;
 
-         for(let directive in Directives){
-           if(val.match(Directives[directive].regex)){
-             const skip = Directives[directive].method(component,dom,val,template);
-             if(skip) i = template.length-1;
-           }
-         }
+         const skip = driveDirectives(val,dom,component,template);
+         if(skip) i = template.length-1;
 
          if(CHECK(val,'TRANS')) val = component.content;
      }

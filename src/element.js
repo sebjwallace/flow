@@ -15,7 +15,6 @@ export const newDomElement = (parent,type) => {
   }
   else
     var child = document.createElement(tag);
-  child.parent = parent;
   parent.appendChild(child);
   return child;
 }

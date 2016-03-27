@@ -18,7 +18,7 @@ gulp.task('lib', function() {
 
 gulp.task('dev', function() {
   return browserify('./src/engine.js',{
-        standalone: 'SchemaEngine'
+        standalone: 'Schema'
     })
     .transform(babelify)
     .bundle()
@@ -28,7 +28,7 @@ gulp.task('dev', function() {
 
 gulp.task('dist', function() {
   return browserify('./src/engine.js',{
-        standalone: 'SchemaEngine'
+        standalone: 'Schema'
     })
     .transform(babelify)
     .bundle()

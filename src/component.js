@@ -16,7 +16,6 @@ const getComponent = (componentID) => {
 
 const getComponentId = (el,key) => {
   return getElementPath(el) + el.children.length;
-  // return key + el.children.length;
 }
 
 const instanciateComponent = (schema,injectData) => {
@@ -35,8 +34,8 @@ export const isComponent = (tag) => {
   else return false;
 }
 
-export const buildComponent = (dom,elementArray,key) => {
-  const componentID = getComponentId(dom.parent,key);
+export const buildComponent = (dom,elementArray) => {
+  const componentID = getComponentId(dom.parent);
   const component = getComponent(componentID);
   if(component)
     return component;
