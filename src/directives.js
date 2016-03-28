@@ -37,12 +37,31 @@ const Directives = [
    {
     regex: GET('EVENT'),
     method: (component,dom,val) => {
-      var format = val.replace('!','').replace(/\s/,'').split(':');
-      dom.el[format[0]] = (e) => {
-        component[format[1]](component,e);
+      const format = val.replace('!','').replace(/\s/,'').split(':');
+      const domEvent = format[0];
+      let event = format[1];
+      let params = event.match(/\([\$a-z,A-Z.]+\)/)
+      event = event.replace(/\([\$a-z,A-Z.]+\)/,'')
+      if(params){
+        params = params[0].replace(/\(|\)/g,'').split(',');
+        for(let param in params){
+          params[param] = getDataFromVar(component,params[param])
+        }
+      }
+      dom.el[domEvent] = (e) => {
+        let args = [component,e];
+        args = args.concat(params);
+        component[event].apply(this,args);
       }
     }
   },
+
+  {
+   regex: /^[a-z,A-Z]+\(\)/,
+   method: (component,dom,val) => {
+     dom.el[val.replace(/\(\)/,'')]()
+   }
+ },
 
   {
     regex: GET('IF'),
@@ -63,6 +82,7 @@ const Directives = [
       const temp = args[0].replace(GET('DATA'),'');
       for(let item in data){
         component.data[temp] = data[item];
+        component.data['$'] = item;
         renderElementArray(component,dom,getContent(template))
       }
       return true;

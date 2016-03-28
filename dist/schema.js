@@ -9,6 +9,11 @@ var _utils = require('./utils');
 
 var Components = [];
 
+var clean = function clean() {
+  Components = [];
+};
+
+exports.clean = clean;
 var setComponent = function setComponent(componentID, component) {
   Components[componentID] = component;
 };
@@ -19,6 +24,15 @@ var getComponent = function getComponent(componentID) {
 
 var getComponentId = function getComponentId(el, key) {
   return (0, _utils.getElementPath)(el) + el.children.length;
+};
+
+var formatData = function formatData(schema, data) {
+  var formatted = undefined;
+  if (Array.isArray(data)) formatted = [];else formatted = {};
+  for (var item in data) {
+    formatted[item] = (0, _utils.getDataFromVar)(schema, data[item]);
+  }
+  return formatted;
 };
 
 var instanciateComponent = function instanciateComponent(schema, injectData) {
@@ -37,12 +51,12 @@ var isComponent = function isComponent(tag) {
 };
 
 exports.isComponent = isComponent;
-var buildComponent = function buildComponent(dom, elementArray) {
+var buildComponent = function buildComponent(dom, elementArray, parentComponent) {
   var componentID = getComponentId(dom.parent);
   var component = getComponent(componentID);
   if (component) return component;else {
     var schema = elementArray[0];
-    var injectData = elementArray[1];
+    var injectData = formatData(parentComponent, elementArray[1]);
     var content = (0, _utils.getContent)(elementArray);
     var instance = instanciateComponent(schema, injectData);
     instance.content = content;
@@ -52,7 +66,7 @@ var buildComponent = function buildComponent(dom, elementArray) {
 };
 exports.buildComponent = buildComponent;
 
-},{"./utils":9}],2:[function(require,module,exports){
+},{"./utils":10}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -71,7 +85,7 @@ var _renderer = require('./renderer');
 
 var buildElement = function buildElement(component, dom, elementArray) {
   var tag = (0, _utils.getTag)(elementArray);
-  var content = (0, _utils.getContent)(elementArray);
+  var content = (0, _utils.getContent)(elementArray, component);
 
   dom.el = (0, _element.newDomElement)(dom.parent, tag);
   dom.el.innerHTML = (0, _utils.validateContent)(content);
@@ -85,7 +99,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
   var tag = (0, _utils.getTag)(elementArray);
   if ((0, _component.isComponent)(tag)) {
     var subElement = (0, _element.newDomElement)(dom.parent, 'div');
-    var subComponent = (0, _component.buildComponent)(dom, elementArray, component.key);
+    var subComponent = (0, _component.buildComponent)(dom, elementArray, component);
     (0, _renderer.render)(subComponent, subElement);
     for (var j = 1; j < elementArray.length; j++) {
       (0, _utils.applySelector)(subElement, elementArray[j]);
@@ -96,7 +110,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
 };
 exports.renderElementArray = renderElementArray;
 
-},{"./component":1,"./element":4,"./exr":6,"./renderer":7,"./utils":9}],3:[function(require,module,exports){
+},{"./component":1,"./element":4,"./exr":6,"./renderer":8,"./utils":10}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -125,9 +139,26 @@ var Directives = [{
   regex: (0, _exr.GET)('EVENT'),
   method: function method(component, dom, val) {
     var format = val.replace('!', '').replace(/\s/, '').split(':');
-    dom.el[format[0]] = function (e) {
-      component[format[1]](component, e);
+    var domEvent = format[0];
+    var event = format[1];
+    var params = event.match(/\([\$a-z,A-Z.]+\)/);
+    event = event.replace(/\([\$a-z,A-Z.]+\)/, '');
+    if (params) {
+      params = params[0].replace(/\(|\)/g, '').split(',');
+      for (var param in params) {
+        params[param] = (0, _utils.getDataFromVar)(component, params[param]);
+      }
+    }
+    dom.el[domEvent] = function (e) {
+      var args = [component, e];
+      args = args.concat(params);
+      component[event].apply(undefined, args);
     };
+  }
+}, {
+  regex: /^[a-z,A-Z]+\(\)/,
+  method: function method(component, dom, val) {
+    dom.el[val.replace(/\(\)/, '')]();
   }
 }, {
   regex: (0, _exr.GET)('IF'),
@@ -146,6 +177,7 @@ var Directives = [{
     var temp = args[0].replace((0, _exr.GET)('DATA'), '');
     for (var item in data) {
       component.data[temp] = data[item];
+      component.data['$'] = item;
       (0, _core.renderElementArray)(component, dom, (0, _utils.getContent)(template));
     }
     return true;
@@ -164,7 +196,7 @@ var driveDirectives = function driveDirectives(val, dom, component, template) {
 };
 exports.driveDirectives = driveDirectives;
 
-},{"./core":2,"./exr":6,"./utils":9}],4:[function(require,module,exports){
+},{"./core":2,"./exr":6,"./utils":10}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -181,13 +213,12 @@ var newDomElement = function newDomElement(parent, type) {
     var child = document.createElement('div');
     (0, _utils.applySelector)(child, tag);
   } else var child = document.createElement(tag);
-  // child.parent = parent;
   parent.appendChild(child);
   return child;
 };
 exports.newDomElement = newDomElement;
 
-},{"./exr":6,"./utils":9}],5:[function(require,module,exports){
+},{"./exr":6,"./utils":10}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -196,17 +227,23 @@ Object.defineProperty(exports, '__esModule', {
 
 var _renderer = require('./renderer');
 
+var _component = require('./component');
+
+var _model = require('./model');
+
 var cssContainer = document.createElement('div');
 cssContainer.id = '--rendered-styles';
 document.body.appendChild(cssContainer);
 
 var Schema = {};
 Schema.engine = _renderer.render;
+Schema.clean = _component.clean;
+Schema.model = _model.model;
 
 exports['default'] = Schema;
 module.exports = exports['default'];
 
-},{"./renderer":7}],6:[function(require,module,exports){
+},{"./component":1,"./model":7,"./renderer":8}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -247,6 +284,48 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
+var _renderer = require('./renderer');
+
+var models = [];
+var history = [];
+
+var model = function model(_model) {
+  var name = undefined;
+  for (name in _model) break;
+  models[name] = _model;
+};
+
+exports.model = model;
+var attachModel = function attachModel(name, component) {
+  if (!models[name].__listeners) models[name].__listeners = {};
+  models[name].__listeners[component.id] = component;
+  component.data[name] = models[name][name];
+  console.log(models);
+};
+
+exports.attachModel = attachModel;
+var updateModel = function updateModel(name, method, values) {
+  var ctr = models[name];
+  var updatedModel = ctr[method](ctr, values);
+  ctr[name] = updatedModel;
+  history.push(updatedModel);
+  var listeners = ctr.__listeners;
+  for (var _listener in listeners) {
+    var listener = listeners[_listener];
+    listener.data[name] = updatedModel;
+    (0, _renderer.render)(listener, listener.root);
+  }
+  console.log(models);
+};
+exports.updateModel = updateModel;
+
+},{"./renderer":8}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
 var _directives = require('./directives');
 
 var _styles = require('./styles');
@@ -256,6 +335,8 @@ var _core = require('./core');
 var _utils = require('./utils');
 
 var _exr = require('./exr');
+
+var _model = require('./model');
 
 var render = function render(component, root) {
 
@@ -283,8 +364,14 @@ var render = function render(component, root) {
   component.setStyles = function (styles) {
     (0, _styles.renderCSS)(styles, component);
   };
+  component.attachModel = function (name) {
+    (0, _model.attachModel)(name, component);
+  };
+  component.updateModel = _model.updateModel;
 
-  traverse(component, dom, [component.template]);
+  if (component.boot && !component.rendered) component.boot(component);
+
+  if (typeof component.template == 'function') traverse(component, dom, [component.template(component)]);else traverse(component, dom, [component.template]);
 
   if (component.styles) (0, _styles.renderCSS)(component.styles, component);
 
@@ -301,6 +388,10 @@ var traverse = function traverse(component, dom, template) {
 
   for (var i = 0; i < template.length; i++) {
     var val = template[i];
+
+    if (typeof val == 'function') {
+      val = val(component);
+    }
     if (typeof val == 'string') {
       if ((0, _utils.applySelector)(dom.el, val)) continue;
 
@@ -316,7 +407,7 @@ var traverse = function traverse(component, dom, template) {
 };
 exports.traverse = traverse;
 
-},{"./core":2,"./directives":3,"./exr":6,"./styles":8,"./utils":9}],8:[function(require,module,exports){
+},{"./core":2,"./directives":3,"./exr":6,"./model":7,"./styles":9,"./utils":10}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -421,7 +512,7 @@ var mount = function mount(cssString, component) {
   mounted.innerHTML = cssString;
 };
 
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -442,6 +533,7 @@ var generateKey = function generateKey(length) {
 exports.generateKey = generateKey;
 var getAttribute = function getAttribute(obj, val) {
   var attr = val.match(/^[a-z,A-Z,-]+/)[0];
+  // const attr = val.replace(/\s+/,'&').split('&')[0];
   var value = (0, _exrJs.REPLACE)(val, 'ATTR', '');
   if ((0, _exrJs.CHECK)(value, 'DATA')) {
     value = getDataFromVar(obj, value);
@@ -473,7 +565,9 @@ var getElementPath = function getElementPath(el) {
 
 exports.getElementPath = getElementPath;
 var getDataFromVar = function getDataFromVar(obj, value) {
+  if (typeof value != 'string') return value;
   var prop = (0, _exrJs.REPLACE)(value, 'DATA', '');
+  if (prop == value) return value;
   var data = null;
   if (prop.match(/\./)) {
     var path = prop.split(/\./);
@@ -488,8 +582,9 @@ var getTag = function getTag(elementArray) {
 };
 
 exports.getTag = getTag;
-var getContent = function getContent(elementArray) {
-  return elementArray[elementArray.length - 1];
+var getContent = function getContent(elementArray, component) {
+  var content = elementArray[elementArray.length - 1];
+  if (typeof content == 'function') return content(component);else return content;
 };
 
 exports.getContent = getContent;

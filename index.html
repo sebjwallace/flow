@@ -10,6 +10,88 @@
 
     <script type="text/javascript">
 
+      Schema.model({
+        todos: [
+          {title: 'sample todo', completed: true}
+        ],
+        add: function(self,params){
+          return self.todos.concat(params.todo)
+        },
+        remove: function(self,params){
+          return self.todos.splice(params.index,1)
+        },
+        toggle: function(self,id){
+          var completed = self.todos[id].completed;
+          self.todos[id].completed = (completed ? false : true);
+          return self.todos;
+        },
+        load: {
+          url: '...'
+        },
+        save: {
+          url: '...'
+        }
+      });
+
+      const Todos = {
+        data: {
+          current: '',
+          todos: []
+        },
+        template: ['#todos',
+          ['input',
+            '!onchange: setCurrent',
+            'focus()', 'placeholder: add todo',
+            'value: $current', ''
+          ],
+          ['ul', '% $todo in $todos',
+            ['li', '!onclick: toggleTodo($$)', '$todo.title', function($){
+                if($.data.todo.completed)
+                  return 'style: text-decoration:line-through'
+              }
+            ]
+          ],
+          ['button', '!onclick: addTodo', 'Add'],
+          ['button', '!onclick: saveTodo', 'Save'],
+          ['p', function($){
+            let incomplete = 0;
+            $.data.todos.forEach(function(todo){
+              if(!todo.completed) incomplete++;
+            })
+            return incomplete + ' items left';
+          }]
+        ],
+        styles: [
+          ['#todos',
+            'position absolute',
+            'width 560px',
+            'margin auto',
+            'border 1px solid #ddd'
+          ],
+          ['li', 'border 1px solid #ddd']
+        ],
+        setCurrent: function(self,e){
+          self.setData({current:e.target.value})
+        },
+        addTodo: function(self){
+          self.updateModel('todos','add',{
+            todo: {title: self.data.current}
+          });
+          self.setData({current: ''})
+        },
+        saveTodo: function(self){
+          self.saveModel('todos')
+        },
+        toggleTodo: function(self,e,id){
+          self.updateModel('todos','toggle',id)
+        },
+        boot: function(self){
+          self.attachModel('todos')
+        }
+      }
+
+      Schema.engine(Todos,document.getElementById('root'));
+
       const Schem = {
         data: { title: 'this is a nav' },
         template: [ '#whole',
@@ -76,7 +158,7 @@
         }
       }
 
-      Schema.engine(Component,document.getElementById('root'));
+      // Schema.engine(Component,document.getElementById('root'));
     </script>
   </body>
 </html>

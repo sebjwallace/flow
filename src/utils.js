@@ -13,6 +13,7 @@ export const generateKey = (length) => {
 
 export const getAttribute = (obj,val) => {
   const attr = val.match(/^[a-z,A-Z,-]+/)[0];
+  // const attr = val.replace(/\s+/,'&').split('&')[0];
   let value = REPLACE(val,'ATTR','');
   if(CHECK(value,'DATA')){
     value = getDataFromVar(obj,value);
@@ -46,7 +47,9 @@ export const getElementPath = (el) => {
 }
 
 export const getDataFromVar = (obj,value) => {
+  if(typeof value != 'string') return value;
   const prop = REPLACE(value,'DATA','');
+  if(prop == value) return value;
   let data = null;
   if(prop.match(/\./)){
     const path = prop.split(/\./);
@@ -60,8 +63,11 @@ export const getTag = (elementArray) => {
   return elementArray[0];
 }
 
-export const getContent = (elementArray) => {
-    return elementArray[elementArray.length -1];
+export const getContent = (elementArray,component) => {
+    let content = elementArray[elementArray.length -1];
+    if(typeof content == 'function')
+      return content(component);
+    else return content;
 }
 
 export const validateContent = (content) => {
