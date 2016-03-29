@@ -66,7 +66,7 @@ var buildComponent = function buildComponent(dom, elementArray, parentComponent)
 };
 exports.buildComponent = buildComponent;
 
-},{"./utils":10}],2:[function(require,module,exports){
+},{"./utils":11}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -110,7 +110,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
 };
 exports.renderElementArray = renderElementArray;
 
-},{"./component":1,"./element":4,"./exr":6,"./renderer":8,"./utils":10}],3:[function(require,module,exports){
+},{"./component":1,"./element":4,"./exr":6,"./renderer":9,"./utils":11}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -149,11 +149,22 @@ var Directives = [{
         params[param] = (0, _utils.getDataFromVar)(component, params[param]);
       }
     }
-    dom.el[domEvent] = function (e) {
-      var args = [component, e];
-      args = args.concat(params);
-      component[event].apply(undefined, args);
-    };
+    if (domEvent.match(/[0-9]/)) {
+      dom.el.addEventListener('keypress', function (e) {
+        var key = e.which || e.keyCode;
+        if (key == domEvent) {
+          var args = [component, e];
+          args = args.concat(params);
+          component[event].apply(undefined, args);
+        }
+      });
+    } else {
+      dom.el[domEvent] = function (e) {
+        var args = [component, e];
+        args = args.concat(params);
+        component[event].apply(undefined, args);
+      };
+    }
   }
 }, {
   regex: /^[a-z,A-Z]+\(\)/,
@@ -196,7 +207,7 @@ var driveDirectives = function driveDirectives(val, dom, component, template) {
 };
 exports.driveDirectives = driveDirectives;
 
-},{"./core":2,"./exr":6,"./utils":10}],4:[function(require,module,exports){
+},{"./core":2,"./exr":6,"./utils":11}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -218,7 +229,7 @@ var newDomElement = function newDomElement(parent, type) {
 };
 exports.newDomElement = newDomElement;
 
-},{"./exr":6,"./utils":10}],5:[function(require,module,exports){
+},{"./exr":6,"./utils":11}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -243,7 +254,7 @@ Schema.model = _model.model;
 exports['default'] = Schema;
 module.exports = exports['default'];
 
-},{"./component":1,"./model":7,"./renderer":8}],6:[function(require,module,exports){
+},{"./component":1,"./model":8,"./renderer":9}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -284,42 +295,72 @@ Object.defineProperty(exports, '__esModule', {
   value: true
 });
 
+var _utils = require('./utils');
+
+var filters = {
+  '==': function _(filterArray, component) {
+
+    var f = filterArray.map(function (filter) {
+      return (0, _utils.getDataFromVar)(component, filter);
+    });
+
+    if (f[1] == f[2]) return f[3];else if (f.length > 4) return f[4];
+  }
+};
+
+var driveFilters = function driveFilters(component, filterArray) {
+  var token = filterArray[0];
+  if (filters[token]) return filters[token](filterArray, component);else return filterArray;
+};
+exports.driveFilters = driveFilters;
+
+},{"./utils":11}],8:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
 var _renderer = require('./renderer');
 
 var models = [];
+var events = [];
 var history = [];
 
-var model = function model(_model) {
-  var name = undefined;
-  for (name in _model) break;
+var model = function model(name, _model) {
+  _model.data = null;
+  _model.name = name;
+  _model.listeners = [];
   models[name] = _model;
+  for (var method in _model) {
+    if (!events[method]) events[method] = [];
+    if (method != 'init' || method != 'save' || method != 'load') events[method].push(_model);
+  }
+  if (_model.init) _model.data = _model.init(_model.data);
 };
 
 exports.model = model;
-var attachModel = function attachModel(name, component) {
-  if (!models[name].__listeners) models[name].__listeners = {};
-  models[name].__listeners[component.id] = component;
-  component.data[name] = models[name][name];
-  console.log(models);
+var attach = function attach(modelName, component) {
+  models[modelName].listeners.push(component);
+  return models[modelName].data;
 };
 
-exports.attachModel = attachModel;
-var updateModel = function updateModel(name, method, values) {
-  var ctr = models[name];
-  var updatedModel = ctr[method](ctr, values);
-  ctr[name] = updatedModel;
-  history.push(updatedModel);
-  var listeners = ctr.__listeners;
-  for (var _listener in listeners) {
-    var listener = listeners[_listener];
-    listener.data[name] = updatedModel;
-    (0, _renderer.render)(listener, listener.root);
-  }
-  console.log(models);
+exports.attach = attach;
+var dispatch = function dispatch(action) {
+  events[action.type].forEach(function (model) {
+    var data = model[action.type](model.data, action, model);
+    model.data = data;
+    history.push(data);
+    if (!model.listeners) return;
+    model.listeners.forEach(function (listener) {
+      listener.models[model.name](model.data);
+      (0, _renderer.render)(listener, listener.root);
+    });
+  });
 };
-exports.updateModel = updateModel;
+exports.dispatch = dispatch;
 
-},{"./renderer":8}],8:[function(require,module,exports){
+},{"./renderer":9}],9:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -327,6 +368,8 @@ Object.defineProperty(exports, '__esModule', {
 });
 
 var _directives = require('./directives');
+
+var _filters = require('./filters');
 
 var _styles = require('./styles');
 
@@ -364,12 +407,32 @@ var render = function render(component, root) {
   component.setStyles = function (styles) {
     (0, _styles.renderCSS)(styles, component);
   };
-  component.attachModel = function (name) {
-    (0, _model.attachModel)(name, component);
+  component.emit = function (action) {
+    (0, _model.dispatch)(action);
   };
-  component.updateModel = _model.updateModel;
 
-  if (component.boot && !component.rendered) component.boot(component);
+  if (!component.rendered) {
+    component.models = {};
+
+    var _loop = function (data) {
+      var val = component.data[data];
+      if (typeof val != 'string') return 'continue';
+      if (val[0] == '@') {
+        var modelName = val.replace('@', '');
+        component.data[data] = (0, _model.attach)(modelName, component);
+        component.models[modelName] = function (incomming) {
+          component.data[data] = incomming;
+        };
+      }
+    };
+
+    for (var data in component.data) {
+      var _ret = _loop(data);
+
+      if (_ret === 'continue') continue;
+    }
+    if (component.boot) component.boot(component);
+  }
 
   if (typeof component.template == 'function') traverse(component, dom, [component.template(component)]);else traverse(component, dom, [component.template]);
 
@@ -379,6 +442,8 @@ var render = function render(component, root) {
     component.rendered = true;
     component.init(component);
   }
+
+  component.rendered = true;
 
   // console.log(root.innerHTML);
 };
@@ -392,6 +457,10 @@ var traverse = function traverse(component, dom, template) {
     if (typeof val == 'function') {
       val = val(component);
     }
+    if (Array.isArray(val)) {
+      val = (0, _filters.driveFilters)(component, val);
+    }
+
     if (typeof val == 'string') {
       if ((0, _utils.applySelector)(dom.el, val)) continue;
 
@@ -400,6 +469,7 @@ var traverse = function traverse(component, dom, template) {
 
       if ((0, _exr.CHECK)(val, 'TRANS')) val = component.content;
     }
+
     if (Array.isArray(val)) {
       (0, _core.renderElementArray)(component, dom, val);
     }
@@ -407,7 +477,7 @@ var traverse = function traverse(component, dom, template) {
 };
 exports.traverse = traverse;
 
-},{"./core":2,"./directives":3,"./exr":6,"./model":7,"./styles":9,"./utils":10}],9:[function(require,module,exports){
+},{"./core":2,"./directives":3,"./exr":6,"./filters":7,"./model":8,"./styles":10,"./utils":11}],10:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -512,7 +582,7 @@ var mount = function mount(cssString, component) {
   mounted.innerHTML = cssString;
 };
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {

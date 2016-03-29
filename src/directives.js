@@ -48,10 +48,22 @@ const Directives = [
           params[param] = getDataFromVar(component,params[param])
         }
       }
-      dom.el[domEvent] = (e) => {
-        let args = [component,e];
-        args = args.concat(params);
-        component[event].apply(this,args);
+      if(domEvent.match(/[0-9]/)){
+        dom.el.addEventListener('keypress', (e) => {
+          const key = e.which || e.keyCode;
+          if(key == domEvent){
+            let args = [component,e];
+            args = args.concat(params);
+            component[event].apply(this,args);
+          }
+        })
+      }
+      else{
+        dom.el[domEvent] = (e) => {
+          let args = [component,e];
+          args = args.concat(params);
+          component[event].apply(this,args);
+        }
       }
     }
   },

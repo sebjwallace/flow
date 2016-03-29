@@ -2,32 +2,42 @@
 import {render} from './renderer';
 
 let models = [];
+let events = [];
 let history = [];
 
-export const model = (model) => {
-  let name;
-  for(name in model) break;
+export const model = (name,model) => {
+  model.data = null;
+  model.name = name;
+  model.listeners = [];
   models[name] = model;
-}
-
-export const attachModel = (name,component) => {
-  if(!models[name].__listeners)
-    models[name].__listeners = {};
-  models[name].__listeners[component.id] = component;
-  component.data[name] = models[name][name];
-  console.log(models);
-}
-
-export const updateModel = (name,method,values) => {
-  const ctr = models[name];
-  const updatedModel = ctr[method](ctr,values);
-  ctr[name] = updatedModel;
-  history.push(updatedModel);
-  const listeners = ctr.__listeners;
-  for(let _listener in listeners){
-    const listener = listeners[_listener];
-    listener.data[name] = updatedModel;
-    render(listener,listener.root);
+  for(let method in model){
+    if(!events[method])
+      events[method] = [];
+    if(
+      method != 'init'
+      || method != 'save'
+      || method != 'load'
+    )
+      events[method].push(model)
   }
-  console.log(models)
+  if(model.init)
+    model.data = model.init(model.data);
+}
+
+export const attach = (modelName,component) => {
+  models[modelName].listeners.push(component);
+  return models[modelName].data;
+}
+
+export const dispatch = (action) => {
+  events[action.type].forEach((model) => {
+    const data = model[action.type](model.data,action,model);
+    model.data = data;
+    history.push(data);
+    if(!model.listeners) return;
+    model.listeners.forEach((listener) => {
+      listener.models[model.name](model.data);
+      render(listener,listener.root)
+    })
+  })
 }

@@ -4,6 +4,10 @@ import {
 } from './directives';
 
 import {
+  driveFilters
+} from './filters';
+
+import {
   renderCSS
 } from './styles';
 
@@ -21,8 +25,8 @@ import {
 } from './exr';
 
 import{
-  updateModel,
-  attachModel
+  attach,
+  dispatch
 } from './model';
 
 export const render = (component,root) => {
@@ -52,13 +56,26 @@ export const render = (component,root) => {
   component.setStyles = (styles) => {
     renderCSS(styles,component)
   };
-  component.attachModel = (name) => {
-    attachModel(name,component);
+  component.emit = (action) => {
+    dispatch(action);
   }
-  component.updateModel = updateModel;
 
-  if(component.boot && !component.rendered)
-    component.boot(component);
+  if(!component.rendered){
+    component.models = {};
+    for(let data in component.data){
+      let val = component.data[data];
+      if(typeof val != 'string') continue;
+      if(val[0] == '@'){
+        const modelName = val.replace('@','');
+        component.data[data] = attach(modelName,component)
+        component.models[modelName] = (incomming) => {
+          component.data[data] = incomming;
+        }
+      }
+    }
+    if(component.boot)
+      component.boot(component);
+  }
 
   if(typeof component.template == 'function')
     traverse(component,dom,[component.template(component)]);
@@ -73,6 +90,8 @@ export const render = (component,root) => {
     component.init(component);
   }
 
+  component.rendered = true;
+
   // console.log(root.innerHTML);
 }
 
@@ -84,6 +103,10 @@ export const traverse = (component,dom,template) => {
      if(typeof val == 'function'){
         val = val(component);
      }
+     if(Array.isArray(val)){
+       val = driveFilters(component,val)
+     }
+
      if(typeof val == 'string'){
       if(applySelector(dom.el,val)) continue;
 
@@ -92,6 +115,7 @@ export const traverse = (component,dom,template) => {
 
       if(CHECK(val,'TRANS')) val = component.content;
      }
+
      if(Array.isArray(val)){
        renderElementArray(component,dom,val);
      }
