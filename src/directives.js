@@ -69,10 +69,23 @@ const Directives = [
   },
 
   {
-   regex: /^[a-z,A-Z]+\(\)/,
-   method: (component,dom,val) => {
-     dom.el[val.replace(/\(\)/,'')]()
-   }
+     regex: /^[a-z,A-Z]+\(\)/,
+     method: (component,dom,val) => {
+       dom.el[val.replace(/\(\)/,'')]()
+     }
+  },
+
+ {
+    regex: /^\[.*\]$/,
+    method: (component,dom,val) => {
+      var el = dom.el
+      var parent = el.parentNode
+      var tag = val.replace(/\[|\]/g,'')
+      var wrapper = document.createElement(tag)
+      parent.appendChild(wrapper)
+      wrapper.appendChild(el)
+      dom.parent = wrapper
+    }
  },
 
   {

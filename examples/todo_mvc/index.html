@@ -7,7 +7,7 @@
   <body>
     <div id="root"></div>
     <link rel="stylesheet" href="base.css">
-    <script type="text/javascript" src="../dist/schema.js"></script>
+    <script type="text/javascript" src="../../dist/schema.js"></script>
 
     <script type="text/javascript">
 
@@ -93,15 +93,9 @@
                 else return completed + ' items left'
               }],
               ['ul', '#filters',
-                ['li',
-                  ['a', 'href: #', ['#/?', '', '.selected'], 'all']
-                ],
-                ['li',
-                  ['a', 'href: #active', ['#/?', 'active', '.selected'], 'active']
-                ],
-                ['li',
-                  ['a', 'href: #completed', ['#/?', 'completed', '.selected'], 'completed']
-                ],
+                ['a', 'href: #', '[li]', ['#/?', '', '.selected'], 'all'],
+                ['a', 'href: #active', '[li]', ['#/?', 'active', '.selected'], 'active'],
+                ['a', 'href: #completed', '[li]', ['#/?', 'completed', '.selected'], 'completed']
               ],
               ['button', '#clear-completed', '!onclick: removeTodo(true)',
                 'Clear completed (' + ($.data.todos.length - $.incompleteCount($)) + ')'
