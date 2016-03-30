@@ -19,12 +19,20 @@
           return todos.concat(params.todo)
         },
         REMOVE_TODO: function(todos,params){
+          if(params.id == "true") return todos.filter(function(todo){
+            return !todo.completed
+          })
           todos.splice(params.id,1)
           return todos;
         },
         TOGGLE_TODO: function(todos,params){
-          var completed = todos[params.id].completed;
-          todos[params.id].completed = (completed ? false : true);
+          if(params.id == 'true' || params.id == 'false'){
+            return todos.map(function(todo){
+              todo.completed = (params.id == 'true');
+              return todo;
+            })
+          }
+          todos[params.id].completed = !todos[params.id].completed
           return todos;
         },
         load: {
@@ -36,11 +44,13 @@
       });
 
       const TodosComponent = {
+        route: '.*',
         data: {
           todos: '@TodosModel',
-          editing: null
+          editing: null,
+          toggleAll: false
         },
-        template: ['#todoapp',
+        template: function($){ return ['#todoapp',
           ['header', '#header',
             ['h1', 'todos'],
             ['input', '#new-todo',
@@ -52,9 +62,14 @@
           ],
           ['section', '#main',
               ['==', '$todos.length', 0, 'style: display:none'],
-            ['input', '#toggle-all', 'type: checkbox', ''],
+            ['input', '#toggle-all', 'type: checkbox',
+              ['==', '$toggleAll', true,
+                '!onclick: toggleTodo(false)', '!onclick: toggleTodo(true)'],
+            ''],
             ['ul', '#todo-list', '% $todo in $todos',
               ['li',
+                ['/|', '\active$', '$todo.completed', false],
+                ['/|', '\completed$', '$todo.completed', true],
                 ['==', '$todo.completed', true, '.completed'],
                 ['==', '$editing', '$todo', '.editing'],
                 ['.view',
@@ -71,24 +86,36 @@
             ],
             ['footer', '#footer',
                 ['==', '$todos.length', 0, 'style: display:none'],
-              ['span', '#todo-count', function($){
+              ['span', '#todo-count', function(){
                 var completed = $.incompleteCount($);
                 if(completed == 1)
                   return '1 item left'
                 else return completed + ' items left'
               }],
               ['ul', '#filters',
-                ['li', ['a', '.selected', 'all']],
-                ['li', ['a', 'active']],
-                ['li', ['a', 'completed']],
+                ['li',
+                  ['a', 'href: #', ['#/?', '', '.selected'], 'all']
+                ],
+                ['li',
+                  ['a', 'href: #active', ['#/?', 'active', '.selected'], 'active']
+                ],
+                ['li',
+                  ['a', 'href: #completed', ['#/?', 'completed', '.selected'], 'completed']
+                ],
+              ],
+              ['button', '#clear-completed', '!onclick: removeTodo(true)',
+                'Clear completed (' + ($.data.todos.length - $.incompleteCount($)) + ')'
               ]
             ]
           ]
-        ],
+        ]},
         addTodo: function(self,e){
           self.emit({
             type: 'ADD_TODO',
-            todo: {title: e.target.value}
+            todo: {
+              title: e.target.value,
+              completed: false
+            }
           });
         },
         removeTodo: function(self,e,id){
@@ -101,6 +128,9 @@
           self.emit({
             type: 'TOGGLE_TODO',
             id: id
+          })
+          self.setData({
+            toggleAll: !self.data.toggleAll
           })
         },
         editTodo: function(self,e,id){

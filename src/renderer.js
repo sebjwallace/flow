@@ -29,6 +29,10 @@ import{
   dispatch
 } from './model';
 
+import{
+  addRoute
+} from './route';
+
 export const render = (component,root) => {
 
   // the top most root (parent component) must be cleared on rerender
@@ -37,7 +41,7 @@ export const render = (component,root) => {
 
   // a key is used for style scope
   if(!component.key)
-    component.key = generateKey(8);
+    component.key = generateKey(4);
   component.root.className = component.key;
 
   // dom object keeps track of dom parent/child relationships during traversal
@@ -74,7 +78,9 @@ export const render = (component,root) => {
       }
     }
     if(component.boot)
-      component.boot(component);
+      component.boot(component)
+    if(component.route)
+      addRoute(component.route,component)
   }
 
   if(typeof component.template == 'function')
@@ -104,7 +110,9 @@ export const traverse = (component,dom,template) => {
         val = val(component);
      }
      if(Array.isArray(val)){
-       val = driveFilters(component,val)
+       val = driveFilters(component,val,dom)
+       if(val == true)
+        return;
      }
 
      if(typeof val == 'string'){

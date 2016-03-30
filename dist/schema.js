@@ -66,7 +66,7 @@ var buildComponent = function buildComponent(dom, elementArray, parentComponent)
 };
 exports.buildComponent = buildComponent;
 
-},{"./utils":11}],2:[function(require,module,exports){
+},{"./utils":12}],2:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -110,7 +110,7 @@ var renderElementArray = function renderElementArray(component, dom, elementArra
 };
 exports.renderElementArray = renderElementArray;
 
-},{"./component":1,"./element":4,"./exr":6,"./renderer":9,"./utils":11}],3:[function(require,module,exports){
+},{"./component":1,"./element":4,"./exr":6,"./renderer":9,"./utils":12}],3:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -207,7 +207,7 @@ var driveDirectives = function driveDirectives(val, dom, component, template) {
 };
 exports.driveDirectives = driveDirectives;
 
-},{"./core":2,"./exr":6,"./utils":11}],4:[function(require,module,exports){
+},{"./core":2,"./exr":6,"./utils":12}],4:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -229,7 +229,7 @@ var newDomElement = function newDomElement(parent, type) {
 };
 exports.newDomElement = newDomElement;
 
-},{"./exr":6,"./utils":11}],5:[function(require,module,exports){
+},{"./exr":6,"./utils":12}],5:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, '__esModule', {
@@ -242,6 +242,8 @@ var _component = require('./component');
 
 var _model = require('./model');
 
+var _route = require('./route');
+
 var cssContainer = document.createElement('div');
 cssContainer.id = '--rendered-styles';
 document.body.appendChild(cssContainer);
@@ -251,10 +253,12 @@ Schema.engine = _renderer.render;
 Schema.clean = _component.clean;
 Schema.model = _model.model;
 
+(0, _route.startRoute)();
+
 exports['default'] = Schema;
 module.exports = exports['default'];
 
-},{"./component":1,"./model":8,"./renderer":9}],6:[function(require,module,exports){
+},{"./component":1,"./model":8,"./renderer":9,"./route":10}],6:[function(require,module,exports){
 "use strict";
 
 Object.defineProperty(exports, "__esModule", {
@@ -297,6 +301,8 @@ Object.defineProperty(exports, '__esModule', {
 
 var _utils = require('./utils');
 
+var _route = require('./route');
+
 var filters = {
   '==': function _(filterArray, component) {
 
@@ -305,16 +311,30 @@ var filters = {
     });
 
     if (f[1] == f[2]) return f[3];else if (f.length > 4) return f[4];
+  },
+  '/|': function _(filterArray, component) {
+    var exp = filterArray[1];
+    var match = (0, _route.matchRoute)(exp);
+    if (!match) return false;
+    var pa = (0, _utils.getDataFromVar)(component, filterArray[2]);
+    var pb = (0, _utils.getDataFromVar)(component, filterArray[3]);
+    if (pa != pb) return true;
+  },
+  '#/?': function _(filterArray) {
+    var expected = filterArray[1];
+    var r = filterArray[2];
+    var uri = (0, _route.currentHash)().replace(/\#|\//g, '');
+    if (expected == uri) return r;
   }
 };
 
-var driveFilters = function driveFilters(component, filterArray) {
+var driveFilters = function driveFilters(component, filterArray, dom) {
   var token = filterArray[0];
-  if (filters[token]) return filters[token](filterArray, component);else return filterArray;
+  if (filters[token]) return filters[token](filterArray, component, dom);else return filterArray;
 };
 exports.driveFilters = driveFilters;
 
-},{"./utils":11}],8:[function(require,module,exports){
+},{"./route":10,"./utils":12}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -381,6 +401,8 @@ var _exr = require('./exr');
 
 var _model = require('./model');
 
+var _route = require('./route');
+
 var render = function render(component, root) {
 
   // the top most root (parent component) must be cleared on rerender
@@ -388,7 +410,7 @@ var render = function render(component, root) {
   component.root = root;
 
   // a key is used for style scope
-  if (!component.key) component.key = (0, _utils.generateKey)(8);
+  if (!component.key) component.key = (0, _utils.generateKey)(4);
   component.root.className = component.key;
 
   // dom object keeps track of dom parent/child relationships during traversal
@@ -432,6 +454,7 @@ var render = function render(component, root) {
       if (_ret === 'continue') continue;
     }
     if (component.boot) component.boot(component);
+    if (component.route) (0, _route.addRoute)(component.route, component);
   }
 
   if (typeof component.template == 'function') traverse(component, dom, [component.template(component)]);else traverse(component, dom, [component.template]);
@@ -458,7 +481,8 @@ var traverse = function traverse(component, dom, template) {
       val = val(component);
     }
     if (Array.isArray(val)) {
-      val = (0, _filters.driveFilters)(component, val);
+      val = (0, _filters.driveFilters)(component, val, dom);
+      if (val == true) return;
     }
 
     if (typeof val == 'string') {
@@ -477,7 +501,51 @@ var traverse = function traverse(component, dom, template) {
 };
 exports.traverse = traverse;
 
-},{"./core":2,"./directives":3,"./exr":6,"./filters":7,"./model":8,"./styles":10,"./utils":11}],10:[function(require,module,exports){
+},{"./core":2,"./directives":3,"./exr":6,"./filters":7,"./model":8,"./route":10,"./styles":11,"./utils":12}],10:[function(require,module,exports){
+'use strict';
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+var _renderer = require('./renderer');
+
+var routes = {};
+var route = '';
+
+var addRoute = function addRoute(exp, component) {
+  routes[exp] = component;
+};
+
+exports.addRoute = addRoute;
+var startRoute = function startRoute() {
+  route = window.location.hash;
+
+  window.onhashchange = function () {
+    route = window.location.hash;
+
+    for (var exp in routes) {
+      if (matchRoute(exp)) {
+        var component = routes[exp];
+        (0, _renderer.render)(component, component.root);
+      }
+    }
+  };
+};
+
+exports.startRoute = startRoute;
+var matchRoute = function matchRoute(exp) {
+  var reex = new RegExp(exp);
+  if (route.match(reex)) return true;
+};
+
+exports.matchRoute = matchRoute;
+var currentHash = function currentHash() {
+  if (route == '' || route == '#') return '#';else return route;
+};
+exports.currentHash = currentHash;
+
+},{"./renderer":9}],11:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -582,7 +650,7 @@ var mount = function mount(cssString, component) {
   mounted.innerHTML = cssString;
 };
 
-},{}],11:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -639,7 +707,7 @@ var getDataFromVar = function getDataFromVar(obj, value) {
   var prop = (0, _exrJs.REPLACE)(value, 'DATA', '');
   if (prop == value) return value;
   var data = null;
-  if (prop.match(/\./)) {
+  if (prop.match(/\./) && prop !== undefined) {
     var path = prop.split(/\./);
     data = obj.data[path[0]][path[1]];
   } else data = obj.data[prop];

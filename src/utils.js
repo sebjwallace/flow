@@ -51,7 +51,7 @@ export const getDataFromVar = (obj,value) => {
   const prop = REPLACE(value,'DATA','');
   if(prop == value) return value;
   let data = null;
-  if(prop.match(/\./)){
+  if(prop.match(/\./) && prop !== undefined){
     const path = prop.split(/\./);
     data = obj.data[path[0]][path[1]];
   }
