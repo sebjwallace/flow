@@ -7,14 +7,26 @@ import {
   applySelector
 } from './utils';
 
-export const newDomElement = (parent,type) => {
+export const applyAttribute = (el,attr,val) => {
+  const build = attr + '="' + val +'" ';
+  return el.replace('>', build + '>');
+}
+
+export const applySelector = (el,val) => {
+  if(typeof val != 'string') return false;
+  if(val.match(/\#/))
+    val = val.replace('#','');
+    el = applyAttribute(el,'id',val);
+  else if(val.match(/\./))
+    val = val.replace(/\./g,'');
+    el = applyAttribute(el,'class',val);
+  else return false;
+  return el;
+}
+
+export const newDomElement = (type) => {
   var tag = type || 'span';
-  if(CHECK(tag,'ID') || CHECK(tag,'CLAS')){
-    var child = document.createElement('div');
-    applySelector(child,tag);
-  }
-  else
-    var child = document.createElement(tag);
-  parent.appendChild(child);
-  return child;
+  var el = "<" + tag + ">" + "</" + tag + ">";
+  el = applySelector(el,tag);
+  return el;
 }
