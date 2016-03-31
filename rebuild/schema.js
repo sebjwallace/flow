@@ -3,16 +3,27 @@
 
 
 var test = (desc,fn) => {
+  var success = () => {
+    console.log('%c *** ' + desc,'color: green')
+  }
+  var failure = (a,b) => {
+    console.log('%c !!! ' + desc,'color: yellow') 
+    console.log('%c expected ' + b,'color: yellow')
+    console.log('%c but got ' + a,'color: yellow')
+  }
   var equal = (a,b) => {
     if(a == b)
-      console.log('%c *** ' + desc,'color: green')
+      success()
     else{
-      console.log('%c !!! ' + desc,'color: yellow') 
-      console.log('%c expected ' + b,'color: yellow')
-      console.log('%c but got ' + a,'color: yellow')
+      failure(a,b)
     }
   }
-  fn(equal)
+  var contains = (a,b) => {
+    if(a.indexOf(b) != -1)
+      success()
+    else failure(a,b)
+  }
+  fn(equal,contains)
 }
 
 
@@ -48,6 +59,48 @@ var alpha = (val) => {
   return val[0]
 }
 
+var randomNumber = (limit) => {
+  var num = (Math.random() * 10) + ''
+  return num.replace('.','').substring(0,limit)
+}
+
+var ESCAPE_VAR = /\$|\!/
+
+
+var nestedVariable = (v,component) => {
+  if(!v.match(/\./)) return v
+
+  var variable
+
+  var nesting = v.split('.')
+  var baseSpace = nesting
+    .splice(0,1)
+    .join('')
+    .replace(ESCAPE_VAR,'')
+  var base = component.data[baseSpace]
+
+  for(var s in nesting) {
+    var escapedVar = nesting[s].replace(ESCAPE_VAR,'')
+    base = base[escapedVar]
+    if(s == nesting.length-1)
+      variable = base
+  }
+
+  return variable
+
+}
+
+var getVariable = (val,component) => {
+  if(!val.match(/^\$/)) return val
+
+  var nested = nestedVariable(val,component)
+  if(nested == val)
+    return component.data[val.replace(ESCAPE_VAR,'')]
+
+  return nested
+  
+}
+
 
 
 var clone = (schema) => {
@@ -69,7 +122,7 @@ var clone = (schema) => {
 
 var initalize = (clone) => {
   
-  clone.key = 4
+  clone.key = randomNumber(4)
   clone.setData = (data) => {}
   clone.setStyles = (styles) => {}
   clone.emit = (action) => {}
@@ -95,6 +148,19 @@ var filters = {
       return m[4]
     return ''
   },
+  '%': (val,component) => {
+    var child = val[1].replace(ESCAPE_VAR,'')
+    var parent = val[2]
+    var parentData = getVariable(parent,component)
+    var el = val[3]
+    var html = ''
+    for(var v in parentData){
+      component.data[child] = parentData[v]
+      component.data['i'] = v
+      html += compile(el,component)
+    }
+    return html
+  },
   '/|': () => {
     
   },
@@ -107,11 +173,17 @@ var directives = {
   '!': (val,component) => {
     val = val.replace('!','')
     val = val.split(' ')
-    var build = val[0] + ' ' + val[1]
+
+    var method = "Schema.event('"+ component.key +"','"+ val[1] +"')"
+    var build = val[0] + ' ' + method
+
+    if(val[0].match(/[0-9]/))
+      return directives['!KEYBOARD'](val[0],method)
     return build
   },
-  '%': () => {
-    
+  '!KEYBOARD': (keyCode,method) => {
+    return 'onkeypress: '
+      + 'function(e){if(e.keyCode == '+ keyCode.replace(':','') +'){'+ method +'}}'
   },
   '[': () => {
     
@@ -138,17 +210,29 @@ var processFilter = (val,component) => {
   return (filters[token] || filters['DEFAULT'])(val,component)
 }
 
-var getVariable = (val,component) => {
+var parseVariable = (val,component) => {
   if(rejectString(val)) return val
-  if(!val.match(/\$/)) return val
-  var vari = val.replace('$','')
-  return component.data[vari]
+
+  var variables = val.match(/\$[a-zA-Z_\.]+(\!?)(|\s)/g)
+  if(!variables) return val
+
+  for(var vari in variables){
+    var v = variables[vari]
+    var variable = getVariable(v,component)
+    val = val.replace(v, variable)
+  }
+
+  return val
+  
 }
 
 var parseAttribute = (val) => {
   if(rejectString(val)) return val
-  if(!val.match(/\:/)) return val
-  var pair = val.replace(' ','').split(':')
+  if(!val.match(/^[a-zA-Z_]+\:/)) return val
+  var pair = val
+    .replace(' ','')
+    .replace(':','_:_')
+    .split('_:_')
   return ' ' + pair[0] + '="' + pair[1] + '"'
 }
 
@@ -212,7 +296,7 @@ var compile = (template,component) => {
     item = processDirective(item,component)
 
     // a variable could be an attribute or content
-    item = getVariable(item,component)
+    item = parseVariable(item,component)
 
     
     // all derivatives have been compiled
@@ -292,8 +376,6 @@ var Schematic = {
 var a = render(Schematic)
 
 console.log(a)
-
-
 
 
 test('can return variables', (equal) => {
@@ -418,4 +500,167 @@ test('can parse id as the tag', (equal) => {
 
   equal(r,'<div id="theId"></div>')
 
+})
+
+test('can parse classes as the tag', (equal) => {
+
+  var s = {
+    template: ['.a .b .c', '']
+  }
+
+  var r = render(s)
+
+  equal(r,'<div class="a b c"></div>')
+
+})
+
+test('can parse attribute from variable', (equal) => {
+
+  var s = {
+    data: { color: 'color:blue' },
+    template: ['span', 'style:$color ']
+  }
+
+  var r = render(s)
+
+  equal(r,'<span style="color:blue"></span>')
+
+})
+
+test('can parse selector from variable', (equal) => {
+
+  var s = {
+    data: { id: '#thisId' },
+    template: ['span', '$id']
+  }
+
+  var r = render(s)
+
+  equal(r,'<span id="thisId"></span>')
+
+})
+
+test('can parse selector from variable with concatination', (equal) => {
+
+  var s = {
+    data: { id: 'thisId' },
+    template: ['span', '#$id']
+  }
+
+  var r = render(s)
+
+  equal(r,'<span id="thisId"></span>')
+
+})
+
+test('can parse nested variables', (equal) => {
+
+  var s = {
+    data: {
+      person: {
+        name: {
+          first: 'tom',
+          last: 'miller'
+        },
+        age: 24
+      }
+    },
+    template: ['i', '$person.name.first $person.name.last is $person.age']
+  }
+
+  var r = render(s)
+
+  equal(r,'<i>tom miller is 24</i>')
+
+})
+
+test('can loop through an array using a filter', (equal) => {
+
+  var s = {
+    data: {
+      items: ['milk','bread','jelly']
+    },
+    template: ['ul',
+      ['%', '$item', '$items',
+        ['li', '$item']
+      ]
+    ]
+  }
+
+  var r = render(s)
+
+  equal(r,'<ul><li>milk</li><li>bread</li><li>jelly</li></ul>')
+
+})
+
+test('can loop through an object using a filter', (equal) => {
+
+  var s = {
+    data: {
+      items: {
+        milk: '1.20',
+        bread: '1.50',
+        jelly: '0.90'
+      }
+    },
+    template: ['ul',
+      ['%', '$item', '$items',
+        ['li', '$i : $item']
+      ]
+    ]
+  }
+
+  var r = render(s)
+
+  equal(r,'<ul><li>milk : 1.20</li><li>bread : 1.50</li><li>jelly : 0.90</li></ul>')
+
+})
+
+test('can loop through nested objects using a filter', (equal) => {
+
+  var s = {
+    data: {
+      items: {
+        milk: { price: '1.20', quantity: 1 },
+        bread: { price: '1.50', quantity: 2 },
+        jelly: { price: '0.90', quantity: 1 }
+      }
+    },
+    template: ['ul',
+      ['%', '$item', '$items',
+        ['li', '$item.quantity!x $i : $item.price']
+      ]
+    ]
+  }
+
+  var r = render(s)
+
+  equal(r,'<ul><li>1x milk : 1.20</li><li>2x bread : 1.50</li><li>1x jelly : 0.90</li></ul>')
+
+})
+
+test('can render an event directive', (equal,contains) => {
+
+  var s = {
+    template: ['div', '!onclick: clicked()']
+  }
+
+  var r = render(s)
+
+  contains(r,'<div onclick="Schema.event(')
+  contains(r, ',\'clicked()\')"></div>')
+
+})
+
+test('can render a keyboard event directive', (equal,contains) => {
+
+  var s = {
+    template: ['div', '!13: clicked()']
+  }
+
+  var r = render(s)
+
+  contains(r,'<div onkeypress="function(e){if(e.keyCode == 13){Schema.event(')
+  contains(r, ',\'clicked()\')}}"></div>')
+  
 })
