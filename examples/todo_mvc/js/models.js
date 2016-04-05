@@ -3,24 +3,24 @@ Schema.model('TodosModel',{
   init: function(todos){
     return []
   },
-  ADD_TODO: function(todos,params){
-    return todos.concat(params.todo)
+  ADD_TODO: function(todos,newTodo){
+    return todos.concat(newTodo)
   },
-  REMOVE_TODO: function(todos,params){
-    if(params.id == "true") return todos.filter(function(todo){
+  REMOVE_TODO: function(todos,id){
+    if(id == "true") return todos.filter(function(todo){
       return !todo.completed
     })
-    todos.splice(params.id,1)
+    todos.splice(id,1)
     return todos;
   },
-  TOGGLE_TODO: function(todos,params){
-    if(params.id == 'true' || params.id == 'false'){
+  TOGGLE_TODO: function(todos,id){
+    if(id == 'true' || id == 'false'){
       return todos.map(function(todo){
-        todo.completed = (params.id == 'true');
+        todo.completed = (id == 'true');
         return todo;
       })
     }
-    todos[params.id].completed = !todos[params.id].completed
+    todos[id].completed = !todos[id].completed
     return todos;
   },
   load: {

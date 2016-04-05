@@ -1,69 +1,8 @@
 
-"use strict";
+Schema.render = (function(){
 
-
-// @events
-
-var Schema = {}
-
-Schema.event = (key,handler) => {
-  var component = components[key]
-  component[handler](component)
-}
-
-
-// #model
-
-let models = [];
-let events = [];
-let history = [];
-
-var model = (name,model) => {
-  model.name = name;
-  model.listeners = [];
-
-  for(let method in model){
-    if(!events[method])
-      events[method] = [];
-    if(
-      method != 'init'
-      || method != 'save'
-      || method != 'load'
-    )
-      events[method].push(model)
-  }
-
-  models[name] = model;
-  model.data = model.init(model.data);
-}
-
-var attach = (modelName,component) => {
-  models[modelName].listeners.push(component);
-  return models[modelName].data;
-}
-
-var reach = (modelName) => {
-  return models[modelName]
-}
-
-var emit = (method,data) => {
-
-  for(var m in events[method]){
-    var model = events[method][m]
-    var modelMethod = model[method]
-    var previousData = model.data
-    var newData = data
-    var returnData = modelMethod(previousData,newData,model)
-    model.data = returnData
-
-    var listeners = model.listeners
-    for(var component in listeners){
-      listeners[component].setData(model.data)
-    }
-  }
-}
-
-
+var storeComponent = Schema.components.storeComponent
+var componentExists = Schema.components.componentExists
 
 
 var reject = (val,type) => {
@@ -114,6 +53,8 @@ var nestedVariable = (v,component) => {
     .replace(ESCAPE_VAR,'')
   var base = component.data[baseSpace]
 
+  if(!base) return undefined
+
   for(var s in nesting) {
     var escapedVar = nesting[s].replace(ESCAPE_VAR,'')
     base = base[escapedVar]
@@ -126,6 +67,7 @@ var nestedVariable = (v,component) => {
 }
 
 var getVariable = (val,component) => {
+  if(typeof val != 'string') return val
   if(!val.match(/^\$/)) return val
 
   var nested = nestedVariable(val,component)
@@ -133,7 +75,7 @@ var getVariable = (val,component) => {
     return component.data[val.replace(ESCAPE_VAR,'')]
 
   return nested
-  
+
 }
 
 
@@ -145,7 +87,7 @@ var clone = (schema) => {
     injectData = schema[1]
 
   schema = schema[0]
-  
+
   var clone = JSON.parse(JSON.stringify(schema))
 
   if(injectData){
@@ -155,7 +97,7 @@ var clone = (schema) => {
       clone.data[d] = injectData[d]
     }
   }
-  
+
   for(var key in schema){
     if(!rejectFunction(schema[key])){
       if(key == 'template')
@@ -163,16 +105,16 @@ var clone = (schema) => {
       else clone[key] = schema[key]
     }
   }
-  
+
   return clone
-  
+
 }
 
 
 // #initalize
 
 var initalize = (clone) => {
-  
+
   clone.key = randomNumber(4)
   clone.setData = (data) => {
     for(var item in data){
@@ -181,7 +123,7 @@ var initalize = (clone) => {
     render([clone])
   }
   clone.setStyles = (styles) => {}
-  clone.emit = emit
+  clone.emit = Schema.emit
 
   clone.models = {};
 
@@ -192,14 +134,12 @@ var initalize = (clone) => {
     if(modelBinding[0] != '@') continue
 
     var modelName = modelBinding.replace('@','')
-    clone.data[data] = attach(modelName,clone)
-    clone.models[modelName] = (incomming) => {
-      clone.setData(incomming)
-    }
+    clone.data[data] = Schema.model.attach(modelName,clone)
+    clone.models[modelName] = data
   }
-  
+
   return clone
-  
+
 }
 
 
@@ -238,11 +178,12 @@ var filters = {
     if(!window) return val
     if(val[1] == window.location.hash)
       return val[2]
-    else return val
+    else return ''
   },
   '/|': (val,component) => {
     if(!window) return val
-    if(val[1] != window.location.hash)
+    var re = new RegExp(val[1])
+    if(window.location.hash.match(re))
       return ''
     if(getVariable(val[2],component) != val[3])
       return 'style: display:none'
@@ -258,7 +199,7 @@ var directives = {
     val = val.replace('!','')
     val = val.split(' ')
 
-    var method = "Schema.event('"+ component.key +"','"+ val[1] +"')"
+    var method = "Schema.event('"+ component.key +"','"+ val[1] +"',event)"
     var build = val[0] + ' ' + method
 
     if(val[0].match(/[0-9]/))
@@ -267,10 +208,10 @@ var directives = {
   },
   '!KEYBOARD': (keyCode,method) => {
     return 'onkeypress: '
-      + 'function(e){if(e.keyCode == '+ keyCode.replace(':','') +'){'+ method +'}}'
+      + 'if(event.keyCode == '+ keyCode.replace(':','') +'){'+ method +'}'
   },
   '[': () => {
-    
+
   },
   'DEFAULT': (val) => {
     return val
@@ -307,7 +248,7 @@ var parseVariable = (val,component) => {
   }
 
   return val
-  
+
 }
 
 var parseAttribute = (val) => {
@@ -331,19 +272,19 @@ var parseSelector = (val) => {
   }
 
   if(!val.match(/(\s|^)+\.[a-zA-Z_-]/g)) return val
-  
+
 }
 
 
 var parseTag = (tag) => {
-  
+
   var close = tag
   var open = parseSelector(tag)
   if(tag != open){
     open = 'div' + open
     close = 'div'
   }
-  
+
 
   return (format) => {
     var split = format
@@ -360,7 +301,7 @@ var parseTag = (tag) => {
 
 var stamp = (element,component,tracked) => {
   if(tracked){
-    if(!TESTING){
+    if(!Schema.TESTING){
 
       for(var c in component.current){
         if(element.indexOf(component.current[c]) != -1)
@@ -377,7 +318,7 @@ var stamp = (element,component,tracked) => {
 
 
 var compile = (template,component,tracked) => {
-    
+
   if(rejectArray(template))
     return template
 
@@ -402,7 +343,7 @@ var compile = (template,component,tracked) => {
     // a variable could be an attribute or content
     item = parseVariable(item,component)
 
-    
+
     // all derivatives have been compiled
 
     // check if item is an attribute or selector
@@ -414,7 +355,7 @@ var compile = (template,component,tracked) => {
 
 
     // if not an attribute, get its content
-    if(check != item) return item
+    if(check != item || check == "") return item
 
     // if its a schema get the string
     item = render(item)
@@ -439,17 +380,6 @@ var compile = (template,component,tracked) => {
 
 // #render
 
-var components = {}
-var lastComponent = null
-
-var componentExists = (schema) => {
-  return components[schema[0].key]
-}
-
-var storeComponent = (component) => {
-  components[component.key] = component
-  lastComponent = component
-}
 
 var track = (component) => {
   if(!component.current)
@@ -475,7 +405,7 @@ var diff = (component) => {
 }
 
 var render = (schema,root) => {
-  
+
   if(!isSchema(schema))
     return schema
 
@@ -493,7 +423,7 @@ var render = (schema,root) => {
   else {
     component = clone(schema)
     component = initalize(component)
-  
+
     track(component)
     composite = compile(
       component.template,
@@ -505,9 +435,9 @@ var render = (schema,root) => {
     component.root = root
   }
 
-  if(component.rendered && !TESTING){
+  if(component.rendered && !Schema.TESTING){
     var diffs = diff(component)
-    
+
     for(var d in diffs){
       var attr = diffs[d].current.match(/[0-9]+\e[0-9]+/)[0]
       var oldEl = document.querySelectorAll('[scid="' + attr + '"]')[0]
@@ -525,6 +455,10 @@ var render = (schema,root) => {
   diff(component)
 
   return composite
-  
+
 }
 
+
+return render
+
+})();

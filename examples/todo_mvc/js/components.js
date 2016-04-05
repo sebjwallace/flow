@@ -4,14 +4,22 @@ const TodosComponent = {
   data: {
     todos: '@TodosModel',
     editing: null,
-    toggleAll: false
+    toggleAll: false,
+    completed: 1,
+    // ' + ($.data.todos.length - $.incompleteCount($)) + '
+    remaining: 0
+    // function(){
+    //   var completed = $.incompleteCount($);
+    //   if(completed == 1)
+    //     return '1 item left'
+    //   else return completed + ' items left'
   },
   template: function($){ return ['#todoapp',
     ['header', '#header',
       ['h1', 'todos'],
       ['input', '#new-todo',
         '!13: addTodo',
-        //'focus()',
+        'autofocus: true',
         'placeholder: What needs to be done?',
         ''
       ]
@@ -22,63 +30,51 @@ const TodosComponent = {
         ['==', '$toggleAll', true,
           '!onclick: toggleTodo(false)', '!onclick: toggleTodo(true)'],
       ''],
-      ['ul', '#todo-list', '% $todo in $todos',
-        ['li',
-          ['/|', '\active$', '$todo.completed', false],
-          ['/|', '\completed$', '$todo.completed', true],
-          ['==', '$todo.completed', true, '.completed'],
-          ['==', '$editing', '$todo', '.editing'],
-          ['.view',
-            ['input', '.toggle', 'type: checkbox', '!onclick: toggleTodo($$)',
-              ['==', '$todo.completed', true, 'checked: true']
+      ['ul', '#todo-list',
+        ['%', '$todo', '$todos',
+          ['li',
+            ['/|', '\active$', '$todo.completed', false],
+            ['/|', '\completed$', '$todo.completed', true],
+            ['==', '$todo.completed', true, '.completed'],
+            ['==', '$editing', '$todo', '.editing'],
+            ['.view',
+              ['input', '.toggle', 'type: checkbox', '!onclick: toggleTodo($i)',
+                ['==', '$todo.completed', true, 'checked: true']
+              ],
+              ['label', '!ondblclick: editTodo($i)', '$todo.title'],
+              ['button', '.destroy', '!onclick: removeTodo($i)'],
             ],
-            ['label', '$todo.title', '!ondblclick: editTodo($$)', ''],
-            ['button', '.destroy', '!onclick: removeTodo($$)', ''],
-          ],
-          ['input', 'value: $todo.title', '.edit',
-            ['==', '$editing', '$todo', 'focus()'], '!onblur: noEditing', ''
+            ['input', 'value: $todo.title', '.edit', '!onblur: noEditing($i)',
+              ['==', '$editing', '$todo', 'autofocus: true']
+            ]
           ]
         ]
       ],
       ['footer', '#footer',
           ['==', '$todos.length', 0, 'style: display:none'],
-        ['span', '#todo-count', function(){
-          var completed = $.incompleteCount($);
-          if(completed == 1)
-            return '1 item left'
-          else return completed + ' items left'
-        }],
+        ['span', '#todo-count', '$remaining'],
         ['ul', '#filters',
-          ['a', 'href: #', '[li]', ['#/?', '', '.selected'], 'all'],
-          ['a', 'href: #active', '[li]', ['#/?', 'active', '.selected'], 'active'],
-          ['a', 'href: #completed', '[li]', ['#/?', 'completed', '.selected'], 'completed']
+          ['li', ['a', 'href: #', ['/==', '', '.selected'], 'all'] ],
+          ['li', ['a', 'href: #active', ['/==', 'active', '.selected'], 'active'] ],
+          ['li', ['a', 'href: #completed', ['/==', 'completed', '.selected'], 'completed'] ]
         ],
         ['button', '#clear-completed', '!onclick: removeTodo(true)',
-          'Clear completed (' + ($.data.todos.length - $.incompleteCount($)) + ')'
+          'Clear completed ($completed)'
         ]
       ]
     ]
   ]},
   addTodo: function(self,e){
-    self.emit({
-      type: 'ADD_TODO',
-      todo: {
+    self.emit('ADD_TODO',{
         title: e.target.value,
         completed: false
-      }
     });
   },
   removeTodo: function(self,e,id){
-    self.emit({
-      type: 'REMOVE_TODO',
-      id: id
-    })
+    self.emit('REMOVE_TODO',id)
   },
   toggleTodo: function(self,e,id){
-    self.emit({
-      type: 'TOGGLE_TODO',
-      id: id
-    })
+    self.emit('TOGGLE_TODO',id)
     self.setData({
       toggleAll: !self.data.toggleAll
     })

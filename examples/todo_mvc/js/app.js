@@ -1,2 +1,2 @@
 
-Schema.engine(TodosComponent,document.getElementById('root'));
+Schema.render([TodosComponent],document.getElementById('root'));
