@@ -1,6 +1,8 @@
 import * as dom from './dom'
 import {render} from './render'
 import {useController} from './controller'
+import {getDataFromVar} from './utils'
+import {route} from './router'
 
 /*
 
@@ -23,13 +25,20 @@ export const compile = (schema) => {
 			for(var i in data){
 			  component.data[i] = data[i]
 			}
-			dom.update(component)
+			dom.update( compile(component) )
 		}
 
 	  	component.emit = (label,data) => {
 	  		if(!data) data = []
+	  		else if(typeof data == 'string')
+	  			data = getDataFromVar(data,component.data)
+	  		else if(Array.isArray(data))
+		  		data = data.map( d => getDataFromVar(d,component.data) )
 	  		useController(label,data)
 	  	}
+
+	  	if(component.route)
+	  		route(component.route,component)
 
 	  	component.compiled = true
 

@@ -1,4 +1,13 @@
 
+export const parseString = (str,data) => {
+  var vars = str.match(/\$[^(\s|\^)]+/)
+  if(!vars) return str
+  var values = vars.map( v => getDataFromVar(v,data) )
+  for(var v in vars)
+    str = str.replace(vars[v],values[v])
+  return str
+}
+
 export const getDataFromVar = (v,data) => {
   if(typeof v != 'string')
     return v
@@ -13,7 +22,11 @@ export const getDataFromVar = (v,data) => {
 
 function deepValue(path, obj){
     for (var i=0, path=path.split('.'), len=path.length; i<len; i++){
-        obj = obj[path[i]];
+      if(!obj){
+        console.error(path.join('.') + ': "' + path[i] + '" does not exist in data')
+        return undefined
+      }
+      obj = obj[path[i]];
     };
     return obj;
-};
+}

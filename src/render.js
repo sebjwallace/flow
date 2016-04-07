@@ -1,5 +1,6 @@
 import {directives} from './directives'
 import {getDataFromVar} from './utils'
+import {parseString} from './utils'
 import {compile} from './compile'
 
 var virtualElement = require('virtual-dom/h')
@@ -34,12 +35,88 @@ const isDirective = (token) => {
   return directives[token]
 }
 
+const isIdSelector = (str) => {
+  if(str.match(/^\#/))
+    return str
+}
+
+const isClassSelector = (str) => {
+  if(str.match(/^\.|\s\./g))
+    return str
+}
+
+const isSelector = (str) => {
+  if(!isString(str)) return false
+  return (isIdSelector(str)
+    || isClassSelector(str))
+}
+
 const getToken = (arr) => {
   return arr[0]
 }
 
+const getObjectKey = (obj) => {
+  for(var key in obj) break;
+  return key
+}
+
 const getLastSlot = (arr) => {
   return arr[arr.length -1]
+}
+
+const applySelector = (str) => {
+  var key, value;
+  if(isIdSelector(str)){
+    key = 'id'
+    value = str.replace('#','')
+  }
+  else if(isClassSelector(str)){
+    key = 'className'
+    value = str.replace('.','')
+  }
+  return { key: key, value: value }
+}
+
+const applyAttribute = (attr,data,component) => {
+
+  if(!isObject(attr)) return attr
+
+  // key is href:
+  // value is 'www.google.com'
+
+  var key = getObjectKey(attr)
+  var value = getDataFromVar(attr[key],data)
+
+  // attributes can be events which have a more complex format
+  // events can reference methods inside the component
+
+  // either: { onclick: '>clickHandler' }
+  // a '>' token is used to signify a method call
+
+  if(value[0] == '>'){
+    var methodName = value.replace('>','')
+    var method = component[methodName]
+    if(isArray(method))
+      value = () => { component.emit(method[0],method[1]) }
+    else
+      value = method.bind(this,component)
+  }
+
+  // or: { onclick: { '>clickHandler': 'param' } }
+  // if a paramater is supplied
+
+  else if(isObject(value)){
+    var method = getObjectKey(value)
+    if(method[0] == '>'){
+      var args = value[method]
+      args = getDataFromVar(args,data)
+      value = component[method.replace('>','')]
+        .bind(this,component,args)
+    }
+  }
+
+  return { key: key, value: value }
+
 }
 
 const applyDirective = (arr,data,component) => {
@@ -64,7 +141,6 @@ export const render = (arr,data,component) => {
 
   if(isComponent(nestedComponent)){
     var args = arr[1].map((arg) => { return getDataFromVar(arg,data) })
-    console.log(args)
     return compile(
       nestedComponent.apply(nestedComponent,args)
     )
@@ -84,7 +160,19 @@ export const render = (arr,data,component) => {
 
   content = arr.map((slot) => {
 
-    if(isArray(slot)){
+    // any strings before the last slot in the array are id or class selectors
+    // parse and transform them into attributes
+
+    if(isString(slot)){
+
+      if(isSelector(slot)){
+        var selector = applySelector(slot)
+        attributes[selector.key] = selector.value
+      }
+
+    }
+
+    else if(isArray(slot)){
 
       const token = getToken(slot)
 
@@ -100,13 +188,24 @@ export const render = (arr,data,component) => {
 
         if(isArray(result))
           return result
+
+        // a directive can result a selector, which are always strings
+        // merge the id or className with attributes
+
+        else if(isSelector(result)){
+          var selector = applySelector(result)
+          attributes[selector.key] = selector.value
+          return null
+        }
     
         // a directive can return attributes, which are always objects
         // the attribute object needs to merge with the attributes object
 
-        if(isAttribute(result)){
-          for(var attr in result) break;
-          attributes[attr] = result[attr]
+        else if(isAttribute(result)){
+          // var attr = getObjectKey(result)
+          // attributes[attr] = result[attr]
+          var attr = applyAttribute(result,data,component)
+          attributes[attr.key] = attr.value
           return null
         }
 
@@ -124,36 +223,12 @@ export const render = (arr,data,component) => {
 
     else if(isAttribute(slot)){
 
-      // key is href:
-      // value is 'www.google.com'
+      var attr = applyAttribute(slot,data,component)
 
-      for(var key in slot) break;
-      var value = slot[key]
-
-      // attributes can be events which have a more complex format
-      // events can reference methods inside the component
-
-      // either: { onclick: '>clickHandler' }
-      // a '>' token is used to signify a method call
-
-      if(value[0] == '>'){
-        var method = value.replace('>','')
-        value = component[method].bind(this,component)
-      }
-
-      // or: { onclick: { clickHandler: 'param' } }
-      // if a paramater is supplied the '>' token is not needed
-
-      else if(isObject(value)){
-        for(var method in value) break;
-        var args = value[method]
-        args = getDataFromVar(args,data)
-        value = component[method].bind(this,component,args)
-      }
-      
       // merge the attribute into the attrributes object
 
-      attributes[key] = value
+      attributes[attr.key] = attr.value
+
     }
 
   })
@@ -164,7 +239,7 @@ export const render = (arr,data,component) => {
   var lastSlot = getLastSlot(arr)
 
   if(isString(lastSlot))
-    content.push(getDataFromVar(lastSlot,data))
+    content.push(parseString(lastSlot,data))
 
   // all the pieces are together to return as a virtual element
 

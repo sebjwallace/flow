@@ -2,12 +2,11 @@
 import * as dom from './dom'
 import {compile} from './compile'
 import {setController} from './controller'
-
-export const Schema = {}
+import {model} from './model'
 
 var domLoaded = false
 
-Schema.render = (schema,root) => {
+export const render = (schema,root) => {
 
 	var tree = compile(schema)
 
@@ -20,8 +19,18 @@ Schema.render = (schema,root) => {
 
 }
 
-Schema.Controller = (controller) => {
+export const Controller = (controller) => {
 
 	setController(controller)
 
 }
+
+export const Model = (schemaModel) => {
+	return model(schemaModel)
+}
+
+export const Schema = {}
+
+Schema.render = render
+Schema.Controller = Controller
+Schema.Model = Model

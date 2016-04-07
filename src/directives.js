@@ -20,6 +20,7 @@ export const directives = {
         return render(c[3],data,component)
       return c[3]
     }
+    else return c[4]
     return ''
   },
   '!=': function(c,data,component){
@@ -28,5 +29,30 @@ export const directives = {
     if(conditionA != conditionB)
       return render(c[3],data,component)
     return ''
+  },
+  '/#==': function(c,data,component){
+    var hash = window.location.hash
+    hash = hash.replace('#','')
+    if(c[1] == hash)
+      return c[2]
+    else return ''
+  },
+  '/#|': function(c,data,component){
+    var hash = window.location.hash
+    if(!hash.match(c[1])) return ''
+    var conditionA = getDataFromVar(c[2],data)
+    var conditionB = getDataFromVar(c[3],data)
+    if (conditionA != conditionB)
+      return {style: {display: 'none'} }
+  },
+  'COUNT': function(c,data,component){
+    var subject = getDataFromVar(c[1],data)
+    if(!Array.isArray(subject)) return ''
+    if(c[1].length == 0) return ''
+    var count = 0
+    subject.map(function(item){
+      if(c[2](item) == true) count++
+    })
+    return count
   }
 }
