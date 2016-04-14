@@ -15,7 +15,7 @@ gulp.task('lib', function() {
 });
 
 gulp.task('dist', function() {
-  return browserify('./src/Schema.js',{
+  return browserify('./src/core.js',{
         standalone: 'Schema'
     })
     .transform(babelify)

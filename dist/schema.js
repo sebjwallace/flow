@@ -208,22 +208,39 @@ var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":13}],9:[function(require,module,exports){
+},{"./vdom/create-element.js":14}],9:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":33}],10:[function(require,module,exports){
+},{"./vtree/diff.js":34}],10:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":20}],11:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":21}],11:[function(require,module,exports){
+var diff = require("./diff.js")
+var patch = require("./patch.js")
+var h = require("./h.js")
+var create = require("./create-element.js")
+var VNode = require('./vnode/vnode.js')
+var VText = require('./vnode/vtext.js')
+
+module.exports = {
+    diff: diff,
+    patch: patch,
+    h: h,
+    create: create,
+    VNode: VNode,
+    VText: VText
+}
+
+},{"./create-element.js":8,"./diff.js":9,"./h.js":10,"./patch.js":12,"./vnode/vnode.js":30,"./vnode/vtext.js":32}],12:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":16}],12:[function(require,module,exports){
+},{"./vdom/patch.js":17}],13:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -322,7 +339,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":24,"is-object":7}],13:[function(require,module,exports){
+},{"../vnode/is-vhook.js":25,"is-object":7}],14:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -370,7 +387,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":22,"../vnode/is-vnode.js":25,"../vnode/is-vtext.js":26,"../vnode/is-widget.js":27,"./apply-properties":12,"global/document":4}],14:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":23,"../vnode/is-vnode.js":26,"../vnode/is-vtext.js":27,"../vnode/is-widget.js":28,"./apply-properties":13,"global/document":4}],15:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -457,7 +474,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -610,7 +627,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":27,"../vnode/vpatch.js":30,"./apply-properties":12,"./update-widget":17}],16:[function(require,module,exports){
+},{"../vnode/is-widget.js":28,"../vnode/vpatch.js":31,"./apply-properties":13,"./update-widget":18}],17:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -692,7 +709,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./create-element":13,"./dom-index":14,"./patch-op":15,"global/document":4,"x-is-array":34}],17:[function(require,module,exports){
+},{"./create-element":14,"./dom-index":15,"./patch-op":16,"global/document":4,"x-is-array":35}],18:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -709,7 +726,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":27}],18:[function(require,module,exports){
+},{"../vnode/is-widget.js":28}],19:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -738,7 +755,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":3}],19:[function(require,module,exports){
+},{"ev-store":3}],20:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -757,7 +774,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -896,7 +913,7 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":23,"../vnode/is-vhook":24,"../vnode/is-vnode":25,"../vnode/is-vtext":26,"../vnode/is-widget":27,"../vnode/vnode.js":29,"../vnode/vtext.js":31,"./hooks/ev-hook.js":18,"./hooks/soft-set-hook.js":19,"./parse-tag.js":21,"x-is-array":34}],21:[function(require,module,exports){
+},{"../vnode/is-thunk":24,"../vnode/is-vhook":25,"../vnode/is-vnode":26,"../vnode/is-vtext":27,"../vnode/is-widget":28,"../vnode/vnode.js":30,"../vnode/vtext.js":32,"./hooks/ev-hook.js":19,"./hooks/soft-set-hook.js":20,"./parse-tag.js":22,"x-is-array":35}],22:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
@@ -952,7 +969,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":2}],22:[function(require,module,exports){
+},{"browser-split":2}],23:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -994,14 +1011,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":23,"./is-vnode":25,"./is-vtext":26,"./is-widget":27}],23:[function(require,module,exports){
+},{"./is-thunk":24,"./is-vnode":26,"./is-vtext":27,"./is-widget":28}],24:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],24:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -1010,7 +1027,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],25:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -1019,7 +1036,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":28}],26:[function(require,module,exports){
+},{"./version":29}],27:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -1028,17 +1045,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":28}],27:[function(require,module,exports){
+},{"./version":29}],28:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 module.exports = "2"
 
-},{}],29:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -1112,7 +1129,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":23,"./is-vhook":24,"./is-vnode":25,"./is-widget":27,"./version":28}],30:[function(require,module,exports){
+},{"./is-thunk":24,"./is-vhook":25,"./is-vnode":26,"./is-widget":28,"./version":29}],31:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -1136,7 +1153,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":28}],31:[function(require,module,exports){
+},{"./version":29}],32:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -1148,7 +1165,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":28}],32:[function(require,module,exports){
+},{"./version":29}],33:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -1208,7 +1225,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":24,"is-object":7}],33:[function(require,module,exports){
+},{"../vnode/is-vhook":25,"is-object":7}],34:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -1637,7 +1654,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":22,"../vnode/is-thunk":23,"../vnode/is-vnode":25,"../vnode/is-vtext":26,"../vnode/is-widget":27,"../vnode/vpatch":30,"./diff-props":32,"x-is-array":34}],34:[function(require,module,exports){
+},{"../vnode/handle-thunk":23,"../vnode/is-thunk":24,"../vnode/is-vnode":26,"../vnode/is-vtext":27,"../vnode/is-widget":28,"../vnode/vpatch":31,"./diff-props":33,"x-is-array":35}],35:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -1647,587 +1664,260 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],35:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-var _dom = require('./dom');
-
-var dom = _interopRequireWildcard(_dom);
-
-var _compile = require('./compile');
-
-var _controller = require('./controller');
-
-var _model = require('./model');
-
-var domLoaded = false;
-
-var render = function render(schema, root) {
-
-	var tree = (0, _compile.compile)(schema);
-
-	if (!domLoaded) {
-		dom.load(tree, root);
-		domLoaded = true;
-	} else dom.update(tree);
-};
-
-exports.render = render;
-var Controller = function Controller(controller) {
-
-	(0, _controller.setController)(controller);
-};
-
-exports.Controller = Controller;
-var Model = function Model(schemaModel) {
-	return (0, _model.model)(schemaModel);
-};
-
-exports.Model = Model;
-var Schema = {};
-
-exports.Schema = Schema;
-Schema.render = render;
-Schema.Controller = Controller;
-Schema.Model = Model;
-
-},{"./compile":36,"./controller":37,"./dom":39,"./model":40}],36:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-var _dom = require('./dom');
-
-var dom = _interopRequireWildcard(_dom);
-
-var _render = require('./render');
-
-var _controller = require('./controller');
-
-var _utils = require('./utils');
-
-var _router = require('./router');
-
-/*
-
-A schema is composed of { data, template, styles, methods }
-The compile function simply mounts some 'self' methods onto the schema.
-i.e 'self.setData()' can be used inside the schema.
-
-This mutation of the schema/component object is additive.
-It will only be applied once to each schema object.
-
-*/
-
-var compile = function compile(schema) {
-
-	var component = schema;
-
-	if (!component.compiled) {
-
-		component.setData = function (data) {
-			for (var i in data) {
-				component.data[i] = data[i];
-			}
-			dom.update(compile(component));
-		};
-
-		component.emit = function (label, data) {
-			if (!data) data = [];else if (typeof data == 'string') data = (0, _utils.getDataFromVar)(data, component.data);else if (Array.isArray(data)) data = data.map(function (d) {
-				return (0, _utils.getDataFromVar)(d, component.data);
-			});
-			(0, _controller.useController)(label, data);
-		};
-
-		if (component.route) (0, _router.route)(component.route, component);
-
-		component.compiled = true;
-	}
-
-	return (0, _render.render)(component.template, component.data, component);
-};
-exports.compile = compile;
-
-},{"./controller":37,"./dom":39,"./render":41,"./router":42,"./utils":43}],37:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-
-var Controller = null;
-
-var setController = function setController(controller) {
-
-	if (!Controller) Controller = controller;else for (var method in controller) Controller[method] = controller[method];
-
-	if (controller.INIT) controller.INIT();
-};
-
-exports.setController = setController;
-var useController = function useController(label, data) {
-	if (!Controller[label]) console.error(label + ': does not exist in controller');else Controller[label].apply(Controller, data);
-};
-exports.useController = useController;
-
-},{}],38:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
   value: true
 });
+exports.$ = $;
+exports.Abstract = Abstract;
 
-var _render = require('./render');
+var vdom = require('virtual-dom');
+var h = vdom.h;
 
-var _utils = require('./utils');
+function DOM() {
 
-var directives = {
-  '%': function _(c, data, component) {
-    var list = data[c[1].replace('$', '')];
-    var rendered = [];
-    for (var i in list) {
-      data[c[2].replace('$', '')] = list[i];
-      data['i'] = i;
-      rendered.push((0, _render.render)(c[3], data, component));
-    }
-    return rendered;
-  },
-  '==': function _(c, data, component) {
-    var conditionA = (0, _utils.getDataFromVar)(c[1], data);
-    var conditionB = (0, _utils.getDataFromVar)(c[2], data);
-    if (conditionA == conditionB) {
-      if (Array.isArray(c[3])) return (0, _render.render)(c[3], data, component);
-      return c[3];
-    } else return c[4];
-    return '';
-  },
-  '!=': function _(c, data, component) {
-    var conditionA = (0, _utils.getDataFromVar)(c[1], data);
-    var conditionB = (0, _utils.getDataFromVar)(c[2], data);
-    if (conditionA != conditionB) return (0, _render.render)(c[3], data, component);
-    return '';
-  },
-  '/#==': function _(c, data, component) {
-    var hash = window.location.hash;
-    hash = hash.replace('#', '');
-    if (c[1] == hash) return c[2];else return '';
-  },
-  '/#|': function _(c, data, component) {
-    var hash = window.location.hash;
-    if (!hash.match(c[1])) return '';
-    var conditionA = (0, _utils.getDataFromVar)(c[2], data);
-    var conditionB = (0, _utils.getDataFromVar)(c[3], data);
-    if (conditionA != conditionB) return { style: { display: 'none' } };
-  },
-  'COUNT': function COUNT(c, data, component) {
-    var subject = (0, _utils.getDataFromVar)(c[1], data);
-    if (!Array.isArray(subject)) return '';
-    if (c[1].length == 0) return '';
-    var count = 0;
-    subject.map(function (item) {
-      if (c[2](item) == true) count++;
-    });
-    return count;
-  }
-};
-exports.directives = directives;
+  var tree = vdom.h('#root', '');
+  var rootNode = vdom.create(tree);
+  document.body.appendChild(rootNode);
 
-},{"./render":41,"./utils":43}],39:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-var diff = require('virtual-dom/diff');
-var patch = require('virtual-dom/patch');
-var createElement = require('virtual-dom/create-element');
-
-var tree = null;
-var rootNode = null;
-
-var load = function load(initTree, root) {
-  tree = initTree;
-  rootNode = createElement(tree);
-  root.appendChild(rootNode);
-};
-
-exports.load = load;
-var update = function update(newTree) {
-  var patches = diff(tree, newTree);
-  rootNode = patch(rootNode, patches);
-  tree = newTree;
-};
-exports.update = update;
-
-},{"virtual-dom/create-element":8,"virtual-dom/diff":9,"virtual-dom/patch":11}],40:[function(require,module,exports){
-"use strict";
-
-Object.defineProperty(exports, "__esModule", {
-	value: true
-});
-var model = function model(_model) {
-	var data = _model.init();
-
-	var cloneFn = function cloneFn(method, clone) {
-		return function (a, b, c, d) {
-			data = _model[method].apply(_model, [data, a, b, c, d]);
-			for (var o in clone.__observables) clone.__observables[o](data);
-			return data;
-		};
-	};
-
-	var clone = {};
-	for (var method in _model) clone[method] = cloneFn(method, clone);
-
-	clone.get = function () {
-		return data;
-	};
-
-	clone.__observables = [];
-
-	clone.subscribe = function (fn) {
-		clone.__observables.push(fn);
-	};
-
-	return clone;
-};
-exports.model = model;
-
-},{}],41:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-
-var _directives = require('./directives');
-
-var _utils = require('./utils');
-
-var _compile = require('./compile');
-
-var virtualElement = require('virtual-dom/h');
-
-var isString = function isString(str) {
-  return typeof str == 'string';
-};
-
-var isArray = function isArray(arr) {
-  return Array.isArray(arr);
-};
-
-var isObject = function isObject(obj) {
-  if (isArray(obj)) return false;
-  return typeof obj == 'object';
-};
-
-var isComponent = function isComponent(obj) {
-  if (typeof obj == 'function') return true;
-  if (!isObject(obj)) return false;
-  if (obj.template) return true;else return false;
-};
-
-var isAttribute = function isAttribute(obj) {
-  if (!isObject(obj)) return false;
-  if (isComponent(obj)) return false;else return true;
-};
-
-var isDirective = function isDirective(token) {
-  return _directives.directives[token];
-};
-
-var isIdSelector = function isIdSelector(str) {
-  if (str.match(/^\#/)) return str;
-};
-
-var isClassSelector = function isClassSelector(str) {
-  if (str.match(/^\.|\s\./g)) return str;
-};
-
-var isSelector = function isSelector(str) {
-  if (!isString(str)) return false;
-  return isIdSelector(str) || isClassSelector(str);
-};
-
-var getToken = function getToken(arr) {
-  return arr[0];
-};
-
-var getObjectKey = function getObjectKey(obj) {
-  for (var key in obj) break;
-  return key;
-};
-
-var getLastSlot = function getLastSlot(arr) {
-  return arr[arr.length - 1];
-};
-
-var applySelector = function applySelector(str) {
-  var key, value;
-  if (isIdSelector(str)) {
-    key = 'id';
-    value = str.replace('#', '');
-  } else if (isClassSelector(str)) {
-    key = 'className';
-    value = str.replace('.', '');
-  }
-  return { key: key, value: value };
-};
-
-var applyAttribute = function applyAttribute(attr, data, component) {
-
-  if (!isObject(attr)) return attr;
-
-  // key is href:
-  // value is 'www.google.com'
-
-  var key = getObjectKey(attr);
-  var value = (0, _utils.getDataFromVar)(attr[key], data);
-
-  // attributes can be events which have a more complex format
-  // events can reference methods inside the component
-
-  // either: { onclick: '>clickHandler' }
-  // a '>' token is used to signify a method call
-
-  if (value[0] == '>') {
-    var methodName = value.replace('>', '');
-    var method = component[methodName];
-    if (isArray(method)) value = function () {
-      component.emit(method[0], method[1]);
-    };else value = method.bind(undefined, component);
+  function update(newTree) {
+    var patches = vdom.diff(tree, newTree);
+    rootNode = vdom.patch(rootNode, patches);
+    tree = newTree;
   }
 
-  // or: { onclick: { '>clickHandler': 'param' } }
-  // if a paramater is supplied
+  return {
 
-  else if (isObject(value)) {
-      var method = getObjectKey(value);
-      if (method[0] == '>') {
-        var args = value[method];
-        args = (0, _utils.getDataFromVar)(args, data);
-        value = component[method.replace('>', '')].bind(undefined, component, args);
-      }
+    render: function render(tree) {
+      update(tree);
     }
 
-  return { key: key, value: value };
-};
-
-var applyDirective = function applyDirective(arr, data, component) {
-  var token = getToken(arr);
-  return _directives.directives[token](arr, data, component);
-};
-
-var render = function render(arr, data, component) {
-
-  // arrays could either be a directive or an element
-  // directive: ['==', 'a', 'b', [element] ]
-  // component: [Object/Function, [params], [children] ]
-  // element: ['div', 'content']
-  // if its a directive apply and return
-
-  var token = getToken(arr);
-
-  if (isDirective(token)) return applyDirective(arr, data, component);
-
-  var nestedComponent = token;
-
-  if (isComponent(nestedComponent)) {
-    var args = arr[1].map(function (arg) {
-      return (0, _utils.getDataFromVar)(arg, data);
-    });
-    return (0, _compile.compile)(nestedComponent.apply(nestedComponent, args));
-  }
-
-  // else the array is an element and shall be interpreted
-  // each element is constructed of a tag, attributes and content
-  // these constructs will be passed to a virtual element
-
-  var tag = nestedComponent;
-  var attributes = {};
-  var content = [];
-
-  // the content will be a result of rendering nested elements
-  // the map method will return nested elements as rendered virtual elements
-  // it will also mutate the attributes object additivly
-
-  content = arr.map(function (slot) {
-
-    // any strings before the last slot in the array are id or class selectors
-    // parse and transform them into attributes
-
-    if (isString(slot)) {
-
-      if (isSelector(slot)) {
-        var selector = applySelector(slot);
-        attributes[selector.key] = selector.value;
-      }
-    } else if (isArray(slot)) {
-
-      var _token = getToken(slot);
-
-      // directives can also be inline either returning elements or attributes
-      // if it returns an object append it to attributes and return null
-
-      if (isDirective(_token)) {
-
-        var result = applyDirective(slot, data, component);
-
-        // a directive can return an array of virtual elements
-        // this can be nested inside the content array with no problem
-
-        if (isArray(result)) return result;
-
-        // a directive can result a selector, which are always strings
-        // merge the id or className with attributes
-
-        else if (isSelector(result)) {
-            var selector = applySelector(result);
-            attributes[selector.key] = selector.value;
-            return null;
-          }
-
-          // a directive can return attributes, which are always objects
-          // the attribute object needs to merge with the attributes object
-
-          else if (isAttribute(result)) {
-              // var attr = getObjectKey(result)
-              // attributes[attr] = result[attr]
-              var attr = applyAttribute(result, data, component);
-              attributes[attr.key] = attr.value;
-              return null;
-            }
-      }
-
-      // if the array is not a directive then its an element
-      // render the element and return it to content
-
-      return render(slot, data, component);
-    }
-
-    // objects inline an array are attributes
-    // i.e { href: 'www.google.com' }
-
-    else if (isAttribute(slot)) {
-
-        var attr = applyAttribute(slot, data, component);
-
-        // merge the attribute into the attrributes object
-
-        attributes[attr.key] = attr.value;
-      }
-  });
-
-  // string content is always the last slot in an array
-  // if it exists just concat is to the end of the content array
-
-  var lastSlot = getLastSlot(arr);
-
-  if (isString(lastSlot)) content.push((0, _utils.parseString)(lastSlot, data));
-
-  // all the pieces are together to return as a virtual element
-
-  return virtualElement(tag, attributes, content);
-};
-exports.render = render;
-
-},{"./compile":36,"./directives":38,"./utils":43,"virtual-dom/h":10}],42:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-	value: true
-});
-
-function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
-
-var _dom = require('./dom');
-
-var dom = _interopRequireWildcard(_dom);
-
-var _compile = require('./compile');
-
-var routes = {};
-var running = false;
-
-var start = function start() {
-
-	if (running) return;
-
-	window.addEventListener('hashchange', function () {
-
-		var hash = window.location.hash.replace('#', '');
-
-		for (var route in routes) {
-			if (hash.match(route)) {
-				var matched = routes[route];
-				for (var component in matched) {
-					var toRender = matched[component];
-					dom.update((0, _compile.compile)(toRender));
-				}
-			}
-		}
-
-		console.log(hash);
-	});
-
-	running = true;
-};
-
-var route = function route(_route, component) {
-	if (!routes[_route]) routes[_route] = [];
-	routes[_route].push(component);
-	start();
-};
-exports.route = route;
-
-},{"./compile":36,"./dom":39}],43:[function(require,module,exports){
-'use strict';
-
-Object.defineProperty(exports, '__esModule', {
-  value: true
-});
-var parseString = function parseString(str, data) {
-  var vars = str.match(/\$[^(\s|\^)]+/);
-  if (!vars) return str;
-  var values = vars.map(function (v) {
-    return getDataFromVar(v, data);
-  });
-  for (var v in vars) str = str.replace(vars[v], values[v]);
-  return str;
-};
-
-exports.parseString = parseString;
-var getDataFromVar = function getDataFromVar(v, data) {
-  if (typeof v != 'string') return v;
-  if (v[0] != '$') return v;
-
-  v = v.replace('$', '');
-  if (v.match(/\./)) return deepValue(v, data);
-  return data[v];
-};
-
-exports.getDataFromVar = getDataFromVar;
-function deepValue(path, obj) {
-  for (var i = 0, path = path.split('.'), len = path.length; i < len; i++) {
-    if (!obj) {
-      console.error(path.join('.') + ': "' + path[i] + '" does not exist in data');
-      return undefined;
-    }
-    obj = obj[path[i]];
   };
-  return obj;
+}
+
+var vDOM = new DOM();
+
+function $(tag, attributes, _children) {
+
+  tag = tag || 'DIV';
+  attributes = attributes || {};
+  _children = _children || [];
+  var domElement = null;
+  var _onload = function onload() {};
+  var data = {};
+
+  function addStyle(attr, value) {
+    if (!attributes.style) attributes.style = {};
+    attributes.style[attr] = value;
+  }
+
+  function parseRGBA(rgba) {
+    rgba = parseArgs(rgba);
+    if (rgba.length == 3) return 'rgb(' + rgba.join(',') + ')';else if (rgba.length == 4) return 'rgba(' + rgba.join(',') + ')';
+  }
+
+  function parseColor(color) {
+    if (typeof color == 'object') color = color.rgbString();
+    return color;
+    return color;
+  }
+
+  function parseArgs(args) {
+    return Array.prototype.slice.call(args);
+  }
+
+  function parseUnits(args) {
+    var args = parseArgs(args);
+    var unit = 'px';
+    if (typeof args[args.length - 1] == 'string') unit = args.splice(args.length - 1);
+    return args.map(function (arg) {
+      return arg += unit + ' ';
+    });
+  }
+
+  function createHook(callback) {
+    var Hook = function Hook() {};
+    Hook.prototype.hook = function (node) {
+      callback(node);
+    };
+    return new Hook();
+  }
+
+  function onReturn() {
+    return chain;
+  }
+
+  var chain = {
+    attr: function attr(_attr, val) {
+      attributes[_attr] = val;
+      return onReturn();
+    },
+    id: function id(_id) {
+      attributes['id'] = _id;
+      return onReturn();
+    },
+    'class': function _class(className) {
+      attributes['className'] = className;
+      return onReturn();
+    },
+    children: function children() {
+      var args = parseArgs(arguments);
+      args = args.map(function (arg) {
+        return arg.vNode();
+      });
+      _children.push(args);
+      return onReturn();
+    },
+    text: function text(_text) {
+      _children.push(_text);
+      return onReturn();
+    },
+    event: function event(_event, fn) {
+      if (typeof fn == 'string') {
+        attributes[_event] = function () {
+          $action.push(fn).call();
+        };
+        return onReturn();
+      }
+      if (typeof fn == 'object') if (fn.type == 'vNodeChain') {
+        attributes[_event] = function () {
+          var styles = fn.vNode().properties.style;
+          for (var style in styles) domElement.style[style] = styles[style];
+        };
+        return onReturn();
+      }
+      attributes[_event] = fn;
+      return onReturn();
+    },
+    action: function action(handler, vNode) {
+      $action.pull(handler, function () {
+        var styles = vNode.vNode().properties.style;
+        for (var style in styles) domElement.style[style] = styles[style];
+      });
+      return onReturn();
+    },
+    onload: function onload(fn) {
+      _onload = fn;
+      return onReturn();
+    },
+    color: function color(_color) {
+      if (arguments.length > 2) _color = parseRGBA(arguments);
+      _color = parseColor(_color);
+      addStyle('color', _color);
+      return onReturn();
+    },
+    background: function background(color) {
+      if (arguments.length > 2) color = parseRGBA(arguments);
+      color = parseColor(color);
+      addStyle('background-color', color);
+      return onReturn();
+    },
+    opacity: function opacity(value) {
+      addStyle('opacity', value);
+      return onReturn();
+    },
+    size: function size() {
+      var sizes = parseUnits(arguments);
+      addStyle('height', sizes[0]);
+      if (sizes.length > 1) addStyle('width', sizes[1]);
+      return onReturn();
+    },
+    padding: function padding() {
+      var padding = parseUnits(arguments).join('');
+      addStyle('padding', padding);
+      return onReturn();
+    },
+    margin: function margin() {
+      var margin = parseUnits(arguments).join('');
+      addStyle('margin', margin);
+      return onReturn();
+    },
+    border: function border(size, style, color) {
+      addStyle('border', size + 'px ' + style + ' ' + color);
+      return onReturn();
+    },
+    transition: function transition(styles, duration) {
+      if (!duration) {
+        duration = styles;
+        styles = 'all';
+      }
+      addStyle('transition', styles + ' ' + duration + 's');
+      return onReturn();
+    },
+    style: function style(attr, value) {
+      addStyle(attr, value);
+      return onReturn();
+    },
+    extend: function extend(abstract) {
+      var vNode = abstract.vNode();
+      for (var prop in vNode.properties) {
+        if (prop != 'style') attributes[prop] = vNode.properties[prop];
+      }
+      var styles = vNode.properties.style;
+      if (styles) {
+        if (!attributes.style) attributes.style = {};
+        for (var style in styles) attributes['style'][style] = styles[style];
+      }
+      var abstractChildren = abstract.getChildren();
+      for (var child in abstractChildren) _children.push(abstractChildren[child]);
+      return onReturn();
+    },
+    click: function click() {
+      domElement.click();
+      return onReturn();
+    },
+    vNode: function vNode() {
+      var vNode = h(tag, attributes, _children);
+      var onloadHook = createHook(function (node) {
+        domElement = node;
+        _onload(node);
+      });
+      vNode.properties['onloadHook'] = onloadHook;
+      return vNode;
+    },
+    domNode: function domNode() {
+      return domElement;
+    },
+    getChildren: function getChildren() {
+      return _children;
+    },
+    getAttributes: function getAttributes() {
+      return attributes;
+    },
+    render: function render() {
+      var vNode = chain.vNode();
+      vDOM.render(vNode);
+      return onReturn();
+    },
+    type: 'vNodeChain'
+  };
+
+  return chain;
+}
+
+var _actions = [];
+
+var $action = {
+
+  push: function push(handler) {
+    return function () {
+      for (var action in _actions[handler]) _actions[handler][action]();
+    };
+  },
+  pull: function pull(handler, fn) {
+    if (!_actions[handler]) _actions[handler] = [];
+    _actions[handler].push(fn);
+  }
+
 };
 
-},{}]},{},[35])(35)
+exports.$action = $action;
+
+function Abstract() {
+  return $('template');
+}
+
+},{"virtual-dom":11}]},{},[36])(36)
 });

@@ -1,5 +1,5 @@
 {
-  "name": "sebjwallace_website",
+  "name": "schema-core",
   "version": "1.0.0",
   "description": "modern web framework",
   "main": "index.js",
@@ -31,6 +31,7 @@
     "browserify": "^13.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
+    "jasmine-core": "^2.4.1",
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"
