@@ -1,5 +1,17 @@
 # Schema
 
+Examples:
+- [Simple todos app](http://codepen.io/sebjwallace/pen/ONZMRg?editors=0010)
+
+CDN
+
+[https://gitcdn.xyz/repo/sebjwallace/schema/master/dist/schema.js](https://gitcdn.xyz/repo/sebjwallace/schema/master/dist/schema.js)
+
+NPM
+```
+npm install --save schema-core
+```
+
 Schema is a library for building and rendering HTML & CSS using the power of Javascript & the virtual-dom.
 
 ```javascript
