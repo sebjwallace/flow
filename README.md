@@ -1,19 +1,98 @@
 # Schema
 
-Schema is a modern framework for building web applications in a functional style. The framework structure is similar to MVC, yet encourages unidirectional data flow, purity and immutibility:
+Schema is a library for building and rendering HTML & CSS using the power of Javascript & the virtual-dom.
 
-- Component
+```javascript
+  $('div')
+    .color('#333')
+    .padding(10)
+    .children(
+      $('h1')
+        .color('orange')
+        .text('Heading')
+      ,
+      $('p')
+        .text('This is the content')
+    )
+    .render()
+```
 
-  Components act as the view of the application. They encapsulate HTML, CSS with private data and methods.
+Elements can be extended, to mixin styles, children or any other attribute.
 
-- Model
+```javascript
+  var box =
+    $()
+      .width('100%)
+      .padding(20)
+      .background(50,80,180)
+      .border(1,'solid','rgba(70,100,220)')
+      
+    $('#derivative')
+      .extend(box)
+      .color('blue')
+```
 
-  A model is an encapsulated set of data with data-specific functions that privatly mutate the data. Only the model can mutate the data -   from the outside it is immutable. It is the single source of truth for the data in the application.
-  
-- Controller
+Style and event declarations come in various forms.
 
-  The controller stitches the components and models together through actions from components, and reactions from models.
-  Neither components or models know about each other, neither do they know about the controller, but the controller knows about both.
-  The controller reacts to actions that components emit by interfacing with models, then rerenders the components with the new data        returned by the models.
-  
-Schema is designed to be declarative, allowing the developer to describe and express their intent in a clear structure. Every line of code written is meant to progress development forward, minimizing boilerplate and framework-specific details.
+```javascript
+  $('input')
+    .onclick(function(){
+      console.log('clicked')
+    })
+    .event('onfocus', function(){
+      console.log('focus')
+    })
+    .style('text-decoration','line-through')
+```
+
+Styles can be directly manipulated from events.
+
+```javascript
+  $('button')
+    .onclick(
+      $(this)
+        .opacity(0.5)
+    )
+```
+
+Elements can communicate through actions. A common use is to change style of various elements from a single action.
+
+```javascript
+  $('div')
+    .children(
+      $('button')
+        .onclick('@submit')
+      ,
+      $('input')
+        .action('@submit',
+          $(this)
+            .opacity(0)
+        )
+      ,
+      $('label')
+        .color('red')
+        .opacity(0)
+        .text('Success')
+        .action('@submit',
+          $(this)
+            .opacity(1)
+        )
+    )
+```
+
+Data can be transformed into text seamlessly.
+
+```javascript
+var people = [
+  {first: 'John', last: 'Doe'},
+  {first: 'Jane', last: 'Doe'}
+]
+
+$('ul')
+  .map(data, function(person){
+    return $('li')
+      .text(person.first + person.last)
+  })
+```
+
+There is much more to come, so watch this space!
