@@ -33,7 +33,7 @@ describe('schema', function(){
   		var vNode = $('div')
   			.class('tester')
   			.vNode()
-		expect(vNode.properties.className).toEqual('tester');
+		expect(vNode.properties.className).toEqual('tester ');
 	});
 
 	it("can add children to the node", function() {
@@ -234,6 +234,48 @@ describe('schema', function(){
 		expect(vNode.properties.style.padding).toEqual('20px ');
 	});
 
+	it("can extend multiple abstract nodes", function() {
+		var first = $().opacity(0.8)
+		var second = $().padding(20)
+
+  		var vNode = $()
+  			.extend(first,second)
+  			.vNode()
+		expect(vNode.properties.style.opacity).toEqual(0.8);
+		expect(vNode.properties.style.padding).toEqual('20px ');
+	});
+
+	it("can extend abstract nodes in the constructor", function() {
+		var abstract = $().opacity(1)
+
+  		var vNode = $(abstract)
+  			.vNode()
+		expect(vNode.properties.style.opacity).toEqual(1);
+	});
+
+	it("can extend multiple abstract nodes in the constructor", function() {
+		var first = $().opacity(0.8)
+		var second = $().padding(20)
+
+  		var vNode = $(first,second)
+  			.vNode()
+		expect(vNode.properties.style.opacity).toEqual(0.8);
+		expect(vNode.properties.style.padding).toEqual('20px ');
+	});
+
+	it("can extend abstract nodes with arguments", function() {
+
+		function abstract(opacity,padding){
+			return $().opacity(opacity).padding(padding)
+		}
+
+  		var vNode = $()
+  			.extend(abstract(0.2,50))
+  			.vNode()
+		expect(vNode.properties.style.opacity).toEqual(0.2);
+		expect(vNode.properties.style.padding).toEqual('50px ');
+	});
+
 	it("can add element events", function() {
   		var vNode = $()
   			.event('onclick',function clicked(){})
@@ -418,6 +460,7 @@ describe('schema', function(){
 		expect(vNode.vNode().children[0].properties.style.padding).toEqual('5px ');
 		expect(vNode.vNode().children[1].children[0].text).toEqual('Dave is 44');
 		expect(vNode.vNode().children[1].properties.style.padding).toEqual('5px ');
+		vNode.removeStyles()
 	});
 
 	it("can filter then map over data into child nodes", function() {
@@ -441,6 +484,178 @@ describe('schema', function(){
 		expect(vNode.vNode().children.length).toEqual(1);
 		expect(vNode.vNode().children[0].children[0].text).toEqual('Anna is 28');
 		expect(vNode.vNode().children[0].properties.style.padding).toEqual('5px ');
+		vNode.removeStyles()
+	});
+
+	it("mounts flexbox grid", function() {
+
+		var grid = document.getElementById('schema-flexboxgrid')
+		expect(grid.tagName).toEqual('STYLE');
+
+	});
+
+	it("have children structured inside a flexbox column", function() {
+
+		var vNode = $()
+			.column(
+				$('div'),
+				$('div')
+			)
+
+		expect(vNode.vNode().properties.style.display).toEqual('flex');
+		expect(vNode.vNode().properties.style['flex-direction']).toEqual('column');
+		vNode.removeStyles()
+	});
+
+	it("have children structured inside a flexbox row", function() {
+
+		var vNode = $()
+			.row(
+				$('div'),
+				$('div')
+			)
+
+		expect(vNode.vNode().properties.style.display).toEqual('flex');
+		expect(vNode.vNode().properties.style['flex-direction']).toEqual('row');
+		vNode.removeStyles()
+	});
+
+	it("can have children/items have order properties", function() {
+
+		var vNode = $()
+			.row(
+				$('div').order(2),
+				$('div').order(1)
+			)
+
+		expect(vNode.vNode().children[0].properties.style.order).toEqual(2);
+		expect(vNode.vNode().children[1].properties.style.order).toEqual(1);
+		vNode.removeStyles()
+	});
+
+	it("can have children/items have grow and shrink properties", function() {
+
+		var vNode = $()
+			.row(
+				$('div').grow(1),
+				$('div').shrink(1)
+			)
+
+		expect(vNode.vNode().children[0].properties.style.grow).toEqual(1);
+		expect(vNode.vNode().children[1].properties.style.shrink).toEqual(1);
+		vNode.removeStyles()
+	});
+
+	it("can have children/items wrap within the parent/container", function() {
+
+		var vNode = $()
+			.row(
+				$('div'),
+				$('div')
+			)
+			.wrap()
+
+		expect(vNode.vNode().properties.style['flex-wrap']).toEqual('wrap');
+		vNode.removeStyles()
+	});
+
+	it("can have children/items align themselves using various declarations", function() {
+
+		var vNode = $()
+			.row(
+				$('div').align('flex-start'),
+				$('div').center(),
+				$('div').align('end'),
+				$('div').baseline(),
+				$('div').stretch(),
+				$('div').align('auto')
+			)
+
+		expect(vNode.vNode().children[0].properties.style['align-self']).toEqual('flex-start');
+		expect(vNode.vNode().children[1].properties.style['align-self']).toEqual('center');
+		expect(vNode.vNode().children[2].properties.style['align-self']).toEqual('flex-end');
+		expect(vNode.vNode().children[3].properties.style['align-self']).toEqual('baseline');
+		expect(vNode.vNode().children[4].properties.style['align-self']).toEqual('stretch');
+		expect(vNode.vNode().children[5].properties.style['align-self']).toEqual('auto');
+		vNode.removeStyles()
+	});
+
+	it("can have children/items align within the parent/container", function() {
+
+		var vNode = $()
+			.row(
+				$('div'),
+				$('div')
+			)
+			.items('stretch')
+
+		expect(vNode.vNode().properties.style['align-items']).toEqual('stretch');
+
+		var vNode = $()
+			.row(
+				$('div'),
+				$('div')
+			)
+			.items('start')
+
+		expect(vNode.vNode().properties.style['align-items']).toEqual('flex-start');
+
+		vNode.removeStyles()
+	});
+
+	it("can align content where there is more than one line of flex items", function() {
+
+		var vNode = $()
+			.row(
+				$('div'),
+				$('div')
+			)
+			.content('start')
+
+		expect(vNode.vNode().properties.style['align-content']).toEqual('flex-start');
+
+		vNode.removeStyles()
+	});
+
+	it("can supply responsive grid attributes", function() {
+
+		var vNode = $()
+			.row(
+				$('div')
+					.xs(12).sm(8).md(6).lg(4)
+			)
+
+		expect(vNode.vNode().children[0].properties.className).toEqual('col-xs-12 col-sm-8 col-md-6 col-lg-4 ');
+
+		vNode.removeStyles()
+	});
+
+	it("can supply responsive grid offsets", function() {
+
+		var vNode = $()
+			.row(
+				$('div')
+					.sm().offset(3)
+					.md().offset(6)
+			)
+
+		expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-offset-3 col-md-offset-6 ');
+
+		vNode.removeStyles()
+	});
+
+	it("can supply responsive grid offsets with cols", function() {
+
+		var vNode = $()
+			.row(
+				$('div')
+					.sm(9).offset(3)
+					.md(6).offset(6)
+			)
+
+		expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-9 col-sm-offset-3 col-md-6 col-md-offset-6 ');
+
+		vNode.removeStyles()
 	});
 
 

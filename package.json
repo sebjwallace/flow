@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/sebjwallace/schema#readme",
   "dependencies": {
+    "flexboxgrid": "^6.3.0",
     "virtual-dom": "^2.1.1"
   },
   "devDependencies": {

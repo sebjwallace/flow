@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+	<head>
+	  <meta charset="utf-8">
+	  <title>Schema</title>
+	</head>
+	 <body>
+	 </body>
+ </html>
+
+<script src="../dist/schema.js"></script>
+
+ <script>
+
+ 	var $ = Schema.$
+
+ 	var todos = [ {title: 'add todos', completed: false} ]
+
+ 	var box = $()
+ 			.background(200,220,255)
+ 			.padding(10)
+ 			.margin(5)
+ 	
+ 	function Todos(todos){
+
+ 		var newTodo = ''
+
+ 		function addTodo(){
+ 			Todos(todos.concat(
+ 				{title: newTodo, completed: false}
+ 					)).render()
+ 		}
+
+ 		return $('#todos-app')
+ 			.width(50,'%')
+ 			.column(
+ 				$('#todos')
+ 					.map(todos, function(todo,i){
+		 				return $(box)
+		 					.text(todo.title)
+		 					.if(function(){ return todo.completed },
+		 						$(this).style('text-decoration','line-through')
+		 					)
+		 					.onclick(function(){
+		 						todos[i].completed = !todo.completed
+		 						Todos(todos).render()
+		 					})
+		 					.justify('space-between')
+		 					.row(
+		 						$('button')
+		 							.text('X')
+		 							.onclick(function(){
+		 								todos.splice(i,1)
+		 								Todos(todos).render()
+		 							})
+		 					)
+		 			})
+ 				,
+ 				$('#addControlls')
+ 					.items('baseline')
+ 					.justify('space-between')
+ 					.row(
+ 						$('input')
+		 					.placeholder('add todo')
+		 					.value('')
+		 					.padding(5)
+		 					.margin(5)
+		 					.grow(1)
+		 					.event('onkeypress',function(e){
+		 						newTodo = e.target.value
+		 						if(e.which == 13)
+		 							addTodo()
+		 					})
+		 				,
+		 				$('button')
+		 					.onclick(function(){
+		 						addTodo()
+		 					})
+		 					.text('Add')
+ 					)
+ 			)
+ 	}
+
+ 	Todos(todos).render()
+
+ </script>

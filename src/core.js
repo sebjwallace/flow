@@ -2,6 +2,9 @@
 var vdom = require('virtual-dom')
 var h = vdom.h;
 
+var grid = require('./flexboxGrid')
+grid.mount()
+
 function DOM(){
     
   var tree = vdom.h('#root','');
@@ -39,16 +42,55 @@ export function $(tag,attributes,children){
     //   }
     // }
 
-    tag = tag || 'DIV'
+    function extend(abstracts){
+      abstracts.forEach(function(abstract){
+        var vNode = abstract.vNode()
+        for(var prop in vNode.properties){
+          if(prop != 'style')
+            attributes[prop] = vNode.properties[prop]
+        }
+        var styles = vNode.properties.style
+        if(styles){
+          if(!attributes.style)
+            attributes.style = {}
+          for(var style in styles)
+            attributes['style'][style] = styles[style]
+        }
+        var abstractChildren = abstract.getChildren()
+        for(var child in abstractChildren)
+          children.push(abstractChildren[child])
+      })
+    }
+
+
+
     attributes = attributes || {}
     children = children || []
     var domElement = null
     var onload = function(){}
+    var chainMediaSize = ''
+
+    if(tag)
+      if(tag.type)
+        if(tag.type == 'vNodeChain'){
+          tag = 'DIV'
+          var abstracts = parseArgs(arguments)
+          extend(abstracts)
+        }
+
+    tag = tag || 'DIV'
+    
 
     function addStyle(attr,value){
     	if(!attributes.style)
     		attributes.style = {}
     	attributes.style[attr] = value
+    }
+
+    function addClass(name){
+      if(!attributes.className)
+        attributes.className = ''
+      attributes.className += name + ' '
     }
 
     function parseRGBA(rgba){
@@ -100,7 +142,7 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       class: function(className){
-        attributes['className'] = className
+        addClass(className)
         return onReturn()
       },
       children: function(){
@@ -150,6 +192,14 @@ export function $(tag,attributes,children){
       onload: function(fn){
       	onload = fn
       	return onReturn()
+      },
+      placeholder: function(text){
+        attributes.placeholder = text
+        return onReturn()
+      },
+      value: function(value){
+        attributes.value = value
+        return onReturn()
       },
       display: function(display){
         addStyle('display',display)
@@ -226,9 +276,120 @@ export function $(tag,attributes,children){
       	addStyle('transition', styles + ' ' + duration + 's')
       	return onReturn()
       },
+      flex: function(){
+        addStyle('display','flex')
+        addStyle('flex-wrap','wrap')
+        return onReturn()
+      },
+      row: function(){
+        chain.flex()
+        addStyle('flex-direction','row')
+        if(arguments)
+          parseArgs(arguments).forEach(function(child){
+            children.push(child.vNode())
+          })
+        return onReturn()
+      },
+      column: function(){
+        chain.flex()
+        addStyle('flex-direction','column')
+        if(arguments)
+          parseArgs(arguments).forEach(function(child){
+            children.push(child.vNode())
+          })
+        return onReturn()
+      },
+      justify: function(alignment){
+        addStyle('justify-content',alignment)
+        return onReturn()
+      },
+      order: function(order){
+        addStyle('order',order)
+        return onReturn()
+      },
+      shrink: function(shrink){
+        addStyle('shrink',shrink)
+        return onReturn()
+      },
+      grow: function(grow){
+        addStyle('flex-grow',grow)
+        return onReturn()
+      },
+      wrap: function(reverse){
+        if(reverse)
+          addStyle('flex-wrap','wrap-reverse')
+        else addStyle('flex-wrap','wrap')
+        return onReturn()
+      },
+      align: function(align){
+        if(align == 'start' || align == 'end')
+          align = 'flex-' + align
+        addStyle('align-self',align)
+        return onReturn()
+      },
+      items: function(align){
+        if(align == 'start' || align == 'end')
+          align = 'flex-' + align
+        addStyle('align-items',align)
+        return onReturn()
+      },
+      content: function(align){
+        if(align == 'start' || align == 'end')
+          align = 'flex-' + align
+        addStyle('align-content',align)
+        return onReturn()
+      },
+      start: function(){
+        return chain.align('flex-start')
+      },
+      end: function(){
+        return chain.align('flex-end')
+      },
+      center: function(){
+        return chain.align('center')
+      },
+      baseline: function(){
+        return chain.align('baseline')
+      },
+      stretch: function(){
+        return chain.align('stretch')
+      },
+      xs: function(size){
+        if(size)
+          addClass('col-xs-' + size)
+        chainMediaSize = 'xs'
+        return onReturn()
+      },
+      sm: function(size){
+        if(size)
+          addClass('col-sm-' + size)
+        chainMediaSize = 'sm'
+        return onReturn()
+      },
+      md: function(size){
+        if(size)
+          addClass('col-md-' + size)
+        chainMediaSize = 'md'
+        return onReturn()
+      },
+      lg: function(size){
+        if(size)
+          addClass('col-lg-' + size)
+        chainMediaSize = 'lg'
+        return onReturn()
+      },
+      offset: function(offset){
+        addClass('col-' + chainMediaSize + '-offset-' + offset)
+        return onReturn()
+      },
       style: function(attr,value){
       	addStyle(attr,value)
       	return onReturn()
+      },
+      if: function(condition,vNode){
+        if(condition() == true)
+          extend([vNode])
+        return onReturn()
       },
       filterMap: function(data,filter,map){
         data = data.filter(filter)
@@ -249,22 +410,9 @@ export function $(tag,attributes,children){
         children.push(text)
         return onReturn()
       },
-      extend: function(abstract){
-      	var vNode = abstract.vNode()
-      	for(var prop in vNode.properties){
-      		if(prop != 'style')
-	      		attributes[prop] = vNode.properties[prop]
-      	}
-  		var styles = vNode.properties.style
-      	if(styles){
-      		if(!attributes.style)
-      			attributes.style = {}
-	      	for(var style in styles)
-      			attributes['style'][style] = styles[style]
-      	}
-      	var abstractChildren = abstract.getChildren()
-      	for(var child in abstractChildren)
-      		children.push(abstractChildren[child])
+      extend: function(){
+        var abstracts = parseArgs(arguments)
+        extend(abstracts)
       	return onReturn()
       },
       removeStyles: function(){
