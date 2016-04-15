@@ -22,7 +22,7 @@ Elements can be extended, to mixin styles, children or any other attribute.
 ```javascript
   var box =
     $()
-      .width('100%)
+      .width('100%')
       .padding(20)
       .background(50,80,180)
       .border(1,'solid','rgba(70,100,220)')
@@ -95,4 +95,16 @@ $('ul')
   })
 ```
 
-There is much more to come, so watch this space!
+Data can be updated from events by wrapping the virtual element in a function.
+
+```javascript
+  function element(data){
+    return $()
+      .text(data)
+      .onclick(function(){
+        element('clicked').render()
+      })
+  }
+  
+  element('not clicked yet').render()
+```
