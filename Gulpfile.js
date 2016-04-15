@@ -25,4 +25,4 @@ gulp.task('dist', function() {
 });
 
 
-gulp.task('default', ['dist']);
+gulp.task('default', ['dist','lib']);

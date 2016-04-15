@@ -1701,12 +1701,21 @@ var vDOM = new DOM();
 
 function $(tag, attributes, _children) {
 
+  // function schema(){
+  //   return{
+  //     tag: tag || 'DIV',
+  //     attributes: attributes || {},
+  //     children: children || [],
+  //     domElement: null,
+  //     onload: function(){},
+  //   }
+  // }
+
   tag = tag || 'DIV';
   attributes = attributes || {};
   _children = _children || [];
   var domElement = null;
   var _onload = function onload() {};
-  var data = {};
 
   function addStyle(attr, value) {
     if (!attributes.style) attributes.style = {};
@@ -1774,10 +1783,10 @@ function $(tag, attributes, _children) {
       _children.push(_text);
       return onReturn();
     },
-    event: function event(_event, fn) {
+    event: function event(_event, fn, params) {
       if (typeof fn == 'string') {
         attributes[_event] = function () {
-          $action.push(fn).call();
+          $action.push(fn, params).call();
         };
         return onReturn();
       }
@@ -1793,13 +1802,32 @@ function $(tag, attributes, _children) {
     },
     action: function action(handler, vNode) {
       $action.pull(handler, function () {
+        if (typeof vNode == 'function') {
+          vNode = vNode.apply(this, arguments);
+        }
         var styles = vNode.vNode().properties.style;
         for (var style in styles) domElement.style[style] = styles[style];
       });
       return onReturn();
     },
+    onclick: function onclick(fn, params) {
+      chain.event('onclick', fn, params);
+      return onReturn();
+    },
     onload: function onload(fn) {
       _onload = fn;
+      return onReturn();
+    },
+    display: function display(_display) {
+      addStyle('display', _display);
+      return onReturn();
+    },
+    hide: function hide() {
+      addStyle('display', 'none');
+      return onReturn();
+    },
+    show: function show() {
+      addStyle('display', 'block');
       return onReturn();
     },
     color: function color(_color) {
@@ -1816,6 +1844,16 @@ function $(tag, attributes, _children) {
     },
     opacity: function opacity(value) {
       addStyle('opacity', value);
+      return onReturn();
+    },
+    height: function height(_height, unit) {
+      if (unit) _height = _height + unit;else if (!isNaN(_height)) _height = _height + 'px';
+      addStyle('height', _height);
+      return onReturn();
+    },
+    width: function width(_width, unit) {
+      if (unit) _width = _width + unit;else if (!isNaN(_width)) _width = _width + 'px';
+      addStyle('width', _width);
       return onReturn();
     },
     size: function size() {
@@ -1850,6 +1888,25 @@ function $(tag, attributes, _children) {
       addStyle(attr, value);
       return onReturn();
     },
+    filterMap: function filterMap(data, filter, map) {
+      data = data.filter(filter);
+      chain.map(data, map);
+      return onReturn();
+    },
+    map: function map(data, fn) {
+      var appending = data.map(function (item, i) {
+        return fn(item, i).vNode();
+      });
+      _children.push(appending);
+      return onReturn();
+    },
+    mapToText: function mapToText(data, fn) {
+      var text = data.map(function (item, i) {
+        return fn(item, i);
+      }).join('');
+      _children.push(text);
+      return onReturn();
+    },
     extend: function extend(abstract) {
       var vNode = abstract.vNode();
       for (var prop in vNode.properties) {
@@ -1864,9 +1921,17 @@ function $(tag, attributes, _children) {
       for (var child in abstractChildren) _children.push(abstractChildren[child]);
       return onReturn();
     },
+    removeStyles: function removeStyles() {
+      if (domElement) domElement.removeAttribute('style');
+      attributes.style = {};
+      return onReturn();
+    },
     click: function click() {
       domElement.click();
       return onReturn();
+    },
+    remove: function remove() {
+      domElement.parent.removeChild(domElement);
     },
     vNode: function vNode() {
       var vNode = h(tag, attributes, _children);
@@ -1897,18 +1962,27 @@ function $(tag, attributes, _children) {
   return chain;
 }
 
-var _actions = [];
+var actions = [];
 
 var $action = {
 
-  push: function push(handler) {
+  push: function push(handler, params) {
+    if (!Array.isArray(params)) params = [params];
     return function () {
-      for (var action in _actions[handler]) _actions[handler][action]();
+      actions[handler].forEach(function (action) {
+        action.apply(this, params);
+      });
     };
   },
   pull: function pull(handler, fn) {
-    if (!_actions[handler]) _actions[handler] = [];
-    _actions[handler].push(fn);
+    if (!actions[handler]) actions[handler] = [];
+    actions[handler].push(fn);
+  },
+  getActions: function getActions(handler) {
+    return actions[handler];
+  },
+  removeAllActions: function removeAllActions(handler) {
+    actions = [];
   }
 
 };
