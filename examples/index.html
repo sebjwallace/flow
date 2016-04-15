@@ -13,13 +13,6 @@
  <script>
 
  	var $ = Schema.$
-
- 	var todos = [ {title: 'add todos', completed: false} ]
-
- 	var box = $()
- 			.background(200,220,255)
- 			.padding(10)
- 			.margin(5)
  	
  	function Todos(todos){
 
@@ -36,16 +29,19 @@
  			.column(
  				$('#todos')
  					.map(todos, function(todo,i){
-		 				return $(box)
+		 				return $()
+				 			.margin(5)
+				 			.padding(10)
+			 				.background(200,220,255)
+		 					.justify('space-between')
 		 					.text(todo.title)
-		 					.if(function(){ return todo.completed },
+		 					.if(todo.completed,
 		 						$(this).style('text-decoration','line-through')
 		 					)
 		 					.onclick(function(){
 		 						todos[i].completed = !todo.completed
 		 						Todos(todos).render()
 		 					})
-		 					.justify('space-between')
 		 					.row(
 		 						$('button')
 		 							.text('X')
@@ -66,21 +62,21 @@
 		 					.padding(5)
 		 					.margin(5)
 		 					.grow(1)
-		 					.event('onkeypress',function(e){
+		 					.onkeypress(function(e){
 		 						newTodo = e.target.value
 		 						if(e.which == 13)
 		 							addTodo()
 		 					})
 		 				,
 		 				$('button')
-		 					.onclick(function(){
-		 						addTodo()
-		 					})
+		 					.onclick(addTodo)
 		 					.text('Add')
  					)
  			)
  	}
 
- 	Todos(todos).render()
+ 	Todos(
+ 		[ {title: 'add todos', completed: false} ]
+ 	).render()
 
  </script>

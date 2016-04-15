@@ -1846,6 +1846,10 @@ function $(tag, attributes, _children) {
       chain.event('onclick', fn, params);
       return onReturn();
     },
+    onkeypress: function onkeypress(fn, params) {
+      chain.event('onkeypress', fn, params);
+      return onReturn();
+    },
     onload: function onload(fn) {
       _onload = fn;
       return onReturn();
@@ -2024,7 +2028,7 @@ function $(tag, attributes, _children) {
       return onReturn();
     },
     'if': function _if(condition, vNode) {
-      if (condition() == true) _extend([vNode]);
+      if (condition == true) _extend([vNode]);
       return onReturn();
     },
     filterMap: function filterMap(data, filter, map) {

@@ -189,6 +189,10 @@ export function $(tag,attributes,children){
         chain.event('onclick',fn,params)
         return onReturn()
       },
+      onkeypress: function(fn,params){
+        chain.event('onkeypress',fn,params)
+        return onReturn()
+      },
       onload: function(fn){
       	onload = fn
       	return onReturn()
@@ -387,7 +391,7 @@ export function $(tag,attributes,children){
       	return onReturn()
       },
       if: function(condition,vNode){
-        if(condition() == true)
+        if(condition == true)
           extend([vNode])
         return onReturn()
       },
