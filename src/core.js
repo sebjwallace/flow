@@ -2,6 +2,8 @@
 var vdom = require('virtual-dom')
 var h = vdom.h;
 
+var ajax = require('@fdaciuk/ajax')
+
 var grid = require('./flexboxGrid')
 grid.mount()
 
@@ -16,31 +18,42 @@ function DOM(){
     rootNode = vdom.patch(rootNode, patches);
     tree = newTree;
   }
-  
   return{
-      
     render: function(tree){
       update(tree);
     }
-     
-  };
-    
+  }; 
 }
-
 var vDOM = new DOM()
 
 
-export function $(tag,attributes,children){
+function isObject(obj){
+  return (!Array.isArray(obj) && typeof obj == 'object')
+}
 
-    // function schema(){
-    //   return{
-    //     tag: tag || 'DIV',
-    //     attributes: attributes || {},
-    //     children: children || [],
-    //     domElement: null,
-    //     onload: function(){},
-    //   }
-    // }
+function getInputType(input){
+  if(!input)
+    return 'NULL'
+  if(typeof input == 'function')
+    return 'NULL'
+  if(input.window)
+    if(input.window = window.window)
+      return 'NULL'
+  if(typeof input == 'string')
+      if(input.match(/\http\:/))
+        return 'HTTP'
+      else return 'TAG'
+  if(input.type)
+    if(input.type == 'vNodeChain')
+      return 'CHAIN'
+  if(Array.isArray(input))
+    return 'DATA'
+  if(typeof input == 'object')
+    if(Object.keys(input).length > 0)
+      return 'DATA'
+}
+
+export function $(tag,attributes,children){
 
     function extend(abstracts){
       abstracts.forEach(function(abstract){
@@ -62,24 +75,35 @@ export function $(tag,attributes,children){
       })
     }
 
-
-
     attributes = attributes || {}
     children = children || []
     var domElement = null
     var onload = function(){}
-    var chainMediaSize = ''
 
-    if(tag)
-      if(tag.type)
-        if(tag.type == 'vNodeChain'){
-          tag = 'DIV'
-          var abstracts = parseArgs(arguments)
-          extend(abstracts)
-        }
-
-    tag = tag || 'DIV'
+    var _data = null
+    var _http = null
+    var _mediaSize = ''
     
+    var _ajaxCallback = null
+    var _ajaxSuccess = null
+    var _ajaxError = null
+
+    if(getInputType(tag) == 'DATA'){
+      _data = tag
+      tag = null
+    }
+    else if(getInputType(tag) == 'CHAIN'){
+      tag = 'DIV'
+      var abstracts = parseArgs(arguments)
+      extend(abstracts)
+    }
+    else if(getInputType(tag) == 'NULL'){
+      tag = 'DIV'
+    }
+    else if(getInputType(tag) == 'HTTP'){
+      _http = tag
+      tag = null
+    }
 
     function addStyle(attr,value){
     	if(!attributes.style)
@@ -133,6 +157,10 @@ export function $(tag,attributes,children){
     }
     
     var chain = {
+      pipe: function(fn){
+        _data = fn(_data)
+        return onReturn()
+      },
       attr: function(attr,val){
         attributes[attr] = val
         return onReturn()
@@ -162,15 +190,14 @@ export function $(tag,attributes,children){
       		}
       		return onReturn()
       	}
-      	if(typeof fn == 'object')
-  	  		if(fn.type == 'vNodeChain'){
-  	  			attributes[event] = function(){
-  		      		var styles = fn.vNode().properties.style
-  		      		for(var style in styles)
-  		      			domElement.style[style] = styles[style]
-  		      	}
-  		      	return onReturn()
-  	  		}
+        if(getInputType(fn) == 'CHAIN'){
+          attributes[event] = function(){
+              var styles = fn.vNode().properties.style
+              for(var style in styles)
+                domElement.style[style] = styles[style]
+            }
+            return onReturn()
+        }
       	attributes[event] = fn
       	return onReturn()
       },
@@ -312,7 +339,7 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       shrink: function(shrink){
-        addStyle('shrink',shrink)
+        addStyle('flex-shrink',shrink)
         return onReturn()
       },
       grow: function(grow){
@@ -361,29 +388,29 @@ export function $(tag,attributes,children){
       xs: function(size){
         if(size)
           addClass('col-xs-' + size)
-        chainMediaSize = 'xs'
+        _mediaSize = 'xs'
         return onReturn()
       },
       sm: function(size){
         if(size)
           addClass('col-sm-' + size)
-        chainMediaSize = 'sm'
+        _mediaSize = 'sm'
         return onReturn()
       },
       md: function(size){
         if(size)
           addClass('col-md-' + size)
-        chainMediaSize = 'md'
+        _mediaSize = 'md'
         return onReturn()
       },
       lg: function(size){
         if(size)
           addClass('col-lg-' + size)
-        chainMediaSize = 'lg'
+        _mediaSize = 'lg'
         return onReturn()
       },
       offset: function(offset){
-        addClass('col-' + chainMediaSize + '-offset-' + offset)
+        addClass('col-' + _mediaSize + '-offset-' + offset)
         return onReturn()
       },
       style: function(attr,value){
@@ -395,12 +422,35 @@ export function $(tag,attributes,children){
           extend([vNode])
         return onReturn()
       },
+      filter: function(fn){
+        if(isObject(_data)){
+          var newObj = {}
+          Object.keys(_data).filter(function(key){
+            if(fn(_data[key],key))
+              newObj[key] = _data[key]
+          })
+          _data = newObj
+          return onReturn()
+        }
+        _data = _data.filter(fn)
+        return onReturn()
+      },
       filterMap: function(data,filter,map){
         data = data.filter(filter)
         chain.map(data,map)
         return onReturn()
       },
       map: function(data,fn){
+        if(typeof data == 'function' && !fn){
+          if(isObject(_data)){
+            Object.keys(_data).map(function(key){
+              _data[key] = data(_data[key],key)
+            })
+            return onReturn()
+          }
+          _data = _data.map(data)
+          return onReturn()
+        }
         var appending = data.map(function(item,i){
           return fn(item,i).vNode()
         })
@@ -412,6 +462,59 @@ export function $(tag,attributes,children){
           return fn(item,i)
         }).join('')
         children.push(text)
+        return onReturn()
+      },
+      toText: function(data){
+        if(!data)
+          data = _data
+        return $().text(data.toString()).vNode()
+      },
+      contain: function(containerTag){
+        tag = containerTag
+        children = _data.map(function(child){
+          if(getInputType(child) != 'CHAIN')
+            return chain.toText(child)
+          return child.vNode()
+        })
+        return onReturn()
+      },
+      get: function(){
+        function proceed(vNodeChain){
+          attributes = {}
+          children = []
+          extend([vNodeChain])
+          chain.render()
+        }
+        ajax().get(_http)
+          .always(function(res,xhr){
+            if(_ajaxCallback)
+              proceed(_ajaxCallback(res,xhr))
+          })
+          .then(function(res,xhr){
+            if(_ajaxSuccess)
+              proceed(_ajaxSuccess(res,xhr))
+          })
+          .catch(function(res,xhr){
+            if(_ajaxError)
+              proceed(_ajaxError(res,xhr))
+          })
+        return onReturn()
+      },
+      default: function(vNodeChain){
+        extend([vNodeChain])
+        chain.render()
+        return onReturn()
+      },
+      return: function(fn){
+        _ajaxCallback = fn
+        return onReturn()
+      },
+      success: function(fn){
+        _ajaxSuccess = fn
+        return onReturn()
+      },
+      error: function(fn){
+        _ajaxError = fn
         return onReturn()
       },
       extend: function(){
@@ -430,11 +533,16 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       remove: function(){
-        domElement.parent.removeChild(domElement)
+        domElement.style.display = 'none'
+        domElement.innerHTML = ''
+        if(domElement.parent)
+          domElement.parent.removeChild(domElement)
       },
       vNode: function(){
+        if(_data)
+          chain.contain()
         var vNode = h(tag,attributes,children)
-    	var onloadHook = createHook(function(node){
+    	  var onloadHook = createHook(function(node){
       		domElement = node
       		onload(node)
       	})
@@ -450,7 +558,15 @@ export function $(tag,attributes,children){
       getAttributes: function(){
       	return attributes
       },
+      getTag: function(){
+        return tag
+      },
+      data: function(){
+        return _data
+      },
       render: function(){
+        if(_data && !tag)
+          chain.contain()
       	var vNode = chain.vNode()
       	vDOM.render(vNode)
       	return onReturn()

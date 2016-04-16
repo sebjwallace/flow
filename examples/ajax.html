@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+	  <meta charset="utf-8">
+	  <title>Ajax</title>
+	</head>
+
+	<body>
+	</body>
+
+	<script src="../dist/schema.js"></script>
+
+	<script>
+		
+	var $ = Schema.$
+
+	$('http://jsonplaceholder.typicode.com/posts/1')
+		.get()
+		.default(
+			$().text('loading...')
+		)
+		.success(function(data){
+			return $()
+				.background(200,220,250)
+				.padding(20)
+				.row(
+					$('h1').text(data.title),
+					$('p').text(data.body)
+				)
+		})
+		.error(function(data){
+			return $()
+				.background(200,150,120)
+				.padding(20)
+				.text('The data could not be loaded')
+		})
+
+	</script>
+
+ </html>

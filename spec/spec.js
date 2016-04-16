@@ -541,8 +541,8 @@ describe('schema', function(){
 				$('div').shrink(1)
 			)
 
-		expect(vNode.vNode().children[0].properties.style.grow).toEqual(1);
-		expect(vNode.vNode().children[1].properties.style.shrink).toEqual(1);
+		expect(vNode.vNode().children[0].properties.style['flex-grow']).toEqual(1);
+		expect(vNode.vNode().children[1].properties.style['flex-shrink']).toEqual(1);
 		vNode.removeStyles()
 	});
 
@@ -656,6 +656,194 @@ describe('schema', function(){
 		expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-9 col-sm-offset-3 col-md-6 col-md-offset-6 ');
 
 		vNode.removeStyles()
+	});
+
+	it("can take data in the constructor and can pipe through it", function() {
+
+		var data = ['a','b','c']
+		var chain = $(data).pipe(function(data){
+			return data.concat(['d'])
+		}).data()
+
+		expect(chain).toEqual(['a','b','c','d']);
+	});
+
+	it("can take data in the constructor and can map through it", function() {
+
+		var data = [1,2,3]
+		var chain = $(data).map(function(item){
+			return item + 1
+		}).data()
+
+		expect(chain).toEqual([2,3,4]);
+	});
+
+	it("can take data in the constructor and can filter it", function() {
+
+		var data = [1,2,3]
+		var chain = $(data).filter(function(item){
+			return item > 2
+		}).data()
+
+		expect(chain).toEqual([3]);
+	});
+
+	it("can take data in the constructor and can filter and map through it", function() {
+
+		var data = [1,2,3]
+		var chain = $(data)
+			.filter(function(item){
+				return item > 1
+			})
+			.map(function(item){
+				return item + 1
+			}).data()
+
+		expect(chain).toEqual([3,4]);
+	});
+
+	it("can take data in the constructor and can map through it into vNodeChains", function() {
+
+		var data = [1,2,3]
+		var chain = $(data).map(function(item){
+			return $().text(item)
+		}).data()
+
+		expect(chain[0].type).toEqual('vNodeChain');
+		expect(chain[1].type).toEqual('vNodeChain');
+		expect(chain[2].type).toEqual('vNodeChain');
+		expect(chain[0].vNode().children[0].text).toEqual('1');
+		expect(chain[1].vNode().children[0].text).toEqual('2');
+		expect(chain[2].vNode().children[0].text).toEqual('3');
+	});
+
+	it("can convert an array of vNodeChains into a single vNodeChain", function() {
+
+		var data = [1,2,3]
+		var chain = $(data)
+			.map(function(item){
+				return $().text(item)
+			})
+			.contain('div')
+
+		expect(chain.type).toEqual('vNodeChain');
+		expect(chain.getTag()).toEqual('div');
+		expect(chain.vNode().tagName).toEqual('DIV');
+		expect(chain.vNode().children.length).toEqual(3);
+
+		var el = chain.render().domNode()
+		expect(el.tagName).toEqual('DIV');
+		expect(el.children[0].innerHTML).toEqual('1');
+		expect(el.children[1].innerHTML).toEqual('2');
+		expect(el.children[2].innerHTML).toEqual('3');
+	});
+
+	it("can convert an array of vNodeChains into a single vNodeChain automatically", function() {
+
+		var data = [1,2,3]
+		var chain = $(data)
+			.map(function(item){
+				return $().text(item)
+			})
+			.render()
+			.domNode()
+
+		expect(chain.tagName).toEqual('DIV');
+		expect(chain.children[0].innerHTML).toEqual('1');
+		expect(chain.children[1].innerHTML).toEqual('2');
+		expect(chain.children[2].innerHTML).toEqual('3');
+	});
+
+	it("can convert data into a VirtualText node", function() {
+
+		var collection = [1,2,3]
+		var chain = $(collection)
+			.pipe(function(data){
+				return 'the first item is ' + data[0]
+			})
+			.toText()
+
+		expect(chain.tagName).toEqual('DIV');
+		expect(chain.children.length).toEqual(1);
+		expect(chain.children[0].text).toEqual('the first item is 1');
+	});
+
+	it("can convert data into a VirtualText node using toString()", function() {
+
+		var collection = [1,2,3]
+		var chain = $(collection)
+			.toText()
+
+		expect(chain.tagName).toEqual('DIV');
+		expect(chain.children.length).toEqual(1);
+		expect(chain.children[0].text).toEqual('1,2,3');
+
+	});
+
+	it("can convert data into a domNode on render automatically", function() {
+
+		var data = [1,2,3]
+		var chain = $(data)
+			.render()
+
+		expect(chain.domNode().tagName).toEqual('DIV');
+		chain.remove()
+	});
+
+	it("can data object and pipe through it", function() {
+
+		var data = {name: 'John', age: '32'}
+
+		var chain = $(data)
+			.pipe(function(inputData){
+				inputData.name = 'Jim'
+				return inputData
+			}).data()
+
+		expect(chain.name).toEqual('Jim');
+	});
+
+	it("can data object map through it", function() {
+
+		var data = {apple: 0.5, bread: 1.2}
+
+		var chain = $(data)
+			.map(function(value,key){
+				return value + 0.2
+			})
+			.data()
+
+		expect(chain.apple).toEqual(0.7);
+		expect(chain.bread).toEqual(1.4);
+	});
+
+	it("can data object filter it", function() {
+
+		var data = {apple: 0.5, bread: 1.2}
+
+		var chain = $(data)
+			.filter(function(value,key){
+				return value > 1
+			})
+			.data()
+
+		expect(chain).toEqual( {bread: 1.2} );
+	});
+
+	it("can data object filter and map through it", function() {
+
+		var data = {bannana: 0.4, apple: 0.5, bread: 1.2}
+
+		var chain = $(data)
+			.filter(function(value,key){
+				return value >= 0.5
+			})
+			.map(function(item){
+				return item + 0.4
+			})
+			.data()
+
+		expect(chain).toEqual( {apple: 0.9, bread: 1.6} );
 	});
 
 

@@ -27,8 +27,8 @@
  		return $('#todos-app')
  			.width(50,'%')
  			.column(
- 				$('#todos')
- 					.map(todos, function(todo,i){
+ 				$(todos)
+ 					.map(function(todo,i){
 		 				return $()
 				 			.margin(5)
 				 			.padding(10)
