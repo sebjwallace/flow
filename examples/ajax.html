@@ -15,26 +15,45 @@
 		
 	var $ = Schema.$
 
-	$('http://jsonplaceholder.typicode.com/posts/1')
-		.get()
-		.default(
-			$().text('loading...')
-		)
-		.success(function(data){
-			return $()
-				.background(200,220,250)
-				.padding(20)
-				.row(
-					$('h1').text(data.title),
-					$('p').text(data.body)
-				)
-		})
-		.error(function(data){
-			return $()
-				.background(200,150,120)
-				.padding(20)
-				.text('The data could not be loaded')
-		})
+	var address = 'http://jsonplaceholder.typicode.com/posts/1'
+	loadAjax(address)
+
+	function loadAjax(url){
+			$({GET: url})
+			.default(
+				$().text('loading data...')
+			)
+			.success(function(data){
+				return $()
+					.background(200,220,250)
+					.padding(20)
+					.justify('space-around')
+					.items('baseline')
+					.row(
+						$('h1').text(data.title),
+						$('p').text(data.body),
+						$('button')
+							.text('retry but with error')
+							.onclick(function(){
+								loadAjax('http://nosuchurl')
+							})
+					)
+			})
+			.error(function(){
+				return $()
+					.background(200,150,120)
+					.padding(20)
+					.text('The data could not be loaded')
+					.justify('space-between')
+					.row(
+						$('button')
+						.text('retry with success')
+						.onclick(function(){
+							loadAjax(address)
+						})
+					)
+			})
+	}
 
 	</script>
 

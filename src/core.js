@@ -40,17 +40,19 @@ function getInputType(input){
     if(input.window = window.window)
       return 'NULL'
   if(typeof input == 'string')
-      if(input.match(/\http\:/))
-        return 'HTTP'
-      else return 'TAG'
+      return 'TAG'
   if(input.type)
     if(input.type == 'vNodeChain')
       return 'CHAIN'
   if(Array.isArray(input))
     return 'DATA'
-  if(typeof input == 'object')
-    if(Object.keys(input).length > 0)
+  if(typeof input == 'object'){
+    if(input.GET){
+      return 'HTTP'
+    }
+    else if(Object.keys(input).length > 0)
       return 'DATA'
+  }
 }
 
 export function $(tag,attributes,children){
@@ -101,7 +103,25 @@ export function $(tag,attributes,children){
       tag = 'DIV'
     }
     else if(getInputType(tag) == 'HTTP'){
-      _http = tag
+      function proceed(vNodeChain){
+        attributes = {}
+        children = []
+        extend([vNodeChain])
+        chain.render()
+      }
+      ajax().get(tag.GET)
+        .always(function(res,xhr){
+          if(_ajaxCallback)
+            proceed(_ajaxCallback(res,xhr))
+        })
+        .then(function(res,xhr){
+          if(_ajaxSuccess)
+            proceed(_ajaxSuccess(res,xhr))
+        })
+        .catch(function(res,xhr){
+          if(_ajaxError)
+            proceed(_ajaxError(res,xhr))
+        })
       tag = null
     }
 
@@ -476,28 +496,6 @@ export function $(tag,attributes,children){
             return chain.toText(child)
           return child.vNode()
         })
-        return onReturn()
-      },
-      get: function(){
-        function proceed(vNodeChain){
-          attributes = {}
-          children = []
-          extend([vNodeChain])
-          chain.render()
-        }
-        ajax().get(_http)
-          .always(function(res,xhr){
-            if(_ajaxCallback)
-              proceed(_ajaxCallback(res,xhr))
-          })
-          .then(function(res,xhr){
-            if(_ajaxSuccess)
-              proceed(_ajaxSuccess(res,xhr))
-          })
-          .catch(function(res,xhr){
-            if(_ajaxError)
-              proceed(_ajaxError(res,xhr))
-          })
         return onReturn()
       },
       default: function(vNodeChain){
