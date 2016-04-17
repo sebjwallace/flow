@@ -31,6 +31,18 @@ function isObject(obj){
   return (!Array.isArray(obj) && typeof obj == 'object')
 }
 
+function parseArgs(args){
+  return Array.prototype.slice.call(args)
+}
+
+function parseUnits(args){
+  var args = parseArgs(args)
+    var unit = 'px'
+    if(typeof args[args.length-1] == 'string')
+      unit = args.splice(args.length-1)
+    return args.map(arg => arg += unit + ' ')
+}
+
 function getInputType(input){
   if(!input)
     return 'NULL'
@@ -80,6 +92,7 @@ export function $(tag,attributes,children){
     attributes = attributes || {}
     children = children || []
     var domElement = null
+    var _container = null
     var onload = function(){}
 
     var _data = null
@@ -152,18 +165,6 @@ export function $(tag,attributes,children){
       return color
     }
 
-    function parseArgs(args){
-    	return Array.prototype.slice.call(args)
-    }
-
-    function parseUnits(args){
-    	var args = parseArgs(args)
-      	var unit = 'px'
-      	if(typeof args[args.length-1] == 'string')
-      		unit = args.splice(args.length-1)
-      	return args.map(arg => arg += unit + ' ')
-    }
-
     function createHook(callback){
     	var Hook = function(){}
     	Hook.prototype.hook = function(node){
@@ -185,6 +186,14 @@ export function $(tag,attributes,children){
         attributes[attr] = val
         return onReturn()
       },
+      attribute: function(){
+        attributes[attr] = val
+        return onReturn()
+      },
+      setAttribute: function(){
+        attributes[attr] = val
+        return onReturn()
+      },
       id: function(id){
         attributes['id'] = id
         return onReturn()
@@ -197,6 +206,14 @@ export function $(tag,attributes,children){
       	var args = parseArgs(arguments)
       	args = args.map(arg => arg.vNode())
         children.push(args)
+        return onReturn()
+      },
+      src: function(path){
+        attributes.src = path
+        return onReturn()
+      },
+      href: function(path){
+        attributes.href = path
         return onReturn()
       },
       text: function(text){
@@ -250,6 +267,10 @@ export function $(tag,attributes,children){
       },
       value: function(value){
         attributes.value = value
+        return onReturn()
+      },
+      position: function(position){
+        addStyle('position',position)
         return onReturn()
       },
       display: function(display){
@@ -315,9 +336,27 @@ export function $(tag,attributes,children){
         addStyle('margin',margin)
         return onReturn()
       },
+      offset: function(side,measure,unit){
+        unit = 'px' || unit
+        addStyle('margin-'+side,'-' + measure + unit)
+        return onReturn()
+      },
       border: function(size,style,color){
-      	addStyle('border', size + 'px ' + style + ' ' + color)
+      	addStyle('border', size + 'px ' + style + ' ' + parseColor(color))
       	return onReturn()
+      },
+      font: function(attr,value,unit){
+        unit = '' || unit
+        addStyle('font-'+attr,value+unit)
+        return onReturn()
+      },
+      textAlign: function(align){
+        addStyle('text-align',align)
+        return onReturn()
+      },
+      letterSpacing: function(space){
+        addStyle('letter-spacing',space + 'px')
+        return onReturn()
       },
       transition: function(styles,duration){
       	if(!duration){
@@ -332,8 +371,8 @@ export function $(tag,attributes,children){
         addStyle('flex-wrap','wrap')
         return onReturn()
       },
-      row: function(){
-        chain.flex()
+      columns: function(){
+        addStyle('display','flex')
         addStyle('flex-direction','row')
         if(arguments)
           parseArgs(arguments).forEach(function(child){
@@ -341,7 +380,7 @@ export function $(tag,attributes,children){
           })
         return onReturn()
       },
-      column: function(){
+      rows: function(){
         chain.flex()
         addStyle('flex-direction','column')
         if(arguments)
@@ -350,8 +389,21 @@ export function $(tag,attributes,children){
           })
         return onReturn()
       },
-      justify: function(alignment){
-        addStyle('justify-content',alignment)
+      centered: function(){
+        _container = h('div',{
+          style:{
+            height: '100%',
+            display: 'flex',
+            'align-items': 'center',
+            'justify-content': 'center'
+          }
+        })
+        return onReturn()
+      },
+      justify: function(align){
+        if(align == 'start' || align == 'end')
+          align = 'flex-' + align
+        addStyle('justify-content',align)
         return onReturn()
       },
       order: function(order){
@@ -396,9 +448,6 @@ export function $(tag,attributes,children){
       end: function(){
         return chain.align('flex-end')
       },
-      center: function(){
-        return chain.align('center')
-      },
       baseline: function(){
         return chain.align('baseline')
       },
@@ -429,10 +478,10 @@ export function $(tag,attributes,children){
         _mediaSize = 'lg'
         return onReturn()
       },
-      offset: function(offset){
-        addClass('col-' + _mediaSize + '-offset-' + offset)
-        return onReturn()
-      },
+      // offset: function(offset){
+      //   addClass('col-' + _mediaSize + '-offset-' + offset)
+      //   return onReturn()
+      // },
       style: function(attr,value){
       	addStyle(attr,value)
       	return onReturn()
@@ -540,6 +589,10 @@ export function $(tag,attributes,children){
         if(_data)
           chain.contain()
         var vNode = h(tag,attributes,children)
+        if(_container){
+          _container.children.push(vNode)
+          vNode = _container
+        }
     	  var onloadHook = createHook(function(node){
       		domElement = node
       		onload(node)
@@ -604,7 +657,10 @@ export var $action = {
 	
 }
 
-export function Abstract(){
-	return $('template')
-}
+var Color = require("color")
 
+export var $color = function(color){
+  if(arguments.length == 3)
+    return Color().rgb(parseArgs(arguments))
+  return Color(color)
+}

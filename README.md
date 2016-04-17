@@ -1,19 +1,20 @@
-# Schema
+# Flow
 
 Examples:
+- [Simple slider](http://codepen.io/sebjwallace/pen/JXvJym?editors=0010)
 - [Simple todos app](http://codepen.io/sebjwallace/pen/ONZMRg?editors=0010)
 - [Ajax example](http://codepen.io/sebjwallace/pen/YqLZNq?editors=0010)
 
 CDN
 
-[https://gitcdn.xyz/repo/sebjwallace/schema/master/dist/schema.js](https://gitcdn.xyz/repo/sebjwallace/schema/master/dist/schema.js)
+[https://gitcdn.xyz/repo/sebjwallace/flow/master/dist/flow.js](https://gitcdn.xyz/repo/sebjwallace/flow/master/dist/flow.js)
 
 NPM
 ```
-npm install --save schema-core
+npm install --save flow-core
 ```
 
-Schema is a library for building and rendering HTML & CSS using the power of Javascript & the virtual-dom.
+Flow is a framework for building and rendering HTML & CSS using the power of Javascript & the virtual-dom.
 
 ```javascript
   $('div')

@@ -1,5 +1,5 @@
 {
-  "name": "schema-core",
+  "name": "flow-core",
   "version": "1.0.0",
   "description": "modern web framework",
   "main": "index.js",
@@ -10,15 +10,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sebjwallace/schema.git"
+    "url": "git+https://github.com/sebjwallace/flow.git"
   },
   "keywords": [],
   "author": "Sebastian Wallace",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/sebjwallace/schema/issues"
+    "url": "https://github.com/sebjwallace/flow/issues"
   },
-  "homepage": "https://github.com/sebjwallace/schema#readme",
+  "homepage": "https://github.com/sebjwallace/flow#readme",
   "dependencies": {
     "@fdaciuk/ajax": "^1.0.10",
     "flexboxgrid": "^6.3.0",
@@ -33,7 +33,9 @@
     "browserify": "^13.0.0",
     "gulp": "^3.9.1",
     "gulp-babel": "^6.1.2",
+    "gulp-uglify": "^1.5.3",
     "jasmine-core": "^2.4.1",
+    "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0",
     "webpack": "^1.12.14",
     "webpack-dev-server": "^1.14.1"

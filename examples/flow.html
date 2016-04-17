@@ -2,7 +2,7 @@
 <html lang="en">
 	<head>
 	  <meta charset="utf-8">
-	  <title>Todos</title>
+	  <title>Flow</title>
 	</head>
 	 <body>
 	 </body>
@@ -12,8 +12,8 @@
 
  <script>
 
- 	var $ = Flow.$
- 	var $color = Flow.$color
+ 	var $ = Schema.$
+ 	var $color = Schema.$color
 
  	var paleBlue = $color(220,240,245)
  	var borderBlue = paleBlue.clone().darken(0.1)
@@ -91,6 +91,27 @@
  	Todos(
  		[ {title: 'add todos', completed: false} ]
  	).render()
+
+
+
+ 	$('GET','http://www.http.com')
+ 		.start(function(todos){
+ 			Todos(todos).render()
+ 		})
+ 		.action('addTodo',function(todo){
+ 			todos.push(todo)
+ 		})
+ 		.action('toggleTodo',function(i){
+ 			todos[i].completed = !todos[i].completed
+ 		})
+ 		.validate(function(todos){
+ 			// validate before sending to db
+ 		})
+ 		.clone()
+ 		.log(logger)
+ 		.http('PUT','http://www.http.com')
+ 		.wait()
+ 		.restart()
 
 
  </script>

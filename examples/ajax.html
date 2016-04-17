@@ -9,11 +9,11 @@
 	<body>
 	</body>
 
-	<script src="../dist/schema.js"></script>
+	<script src="../dist/flow.js"></script>
 
 	<script>
 		
-	var $ = Schema.$
+	var $ = Flow.$
 
 	var address = 'http://jsonplaceholder.typicode.com/posts/1'
 	loadAjax(address)
@@ -29,7 +29,7 @@
 					.padding(20)
 					.justify('space-around')
 					.items('baseline')
-					.row(
+					.columns(
 						$('h1').text(data.title),
 						$('p').text(data.body),
 						$('button')
@@ -45,7 +45,7 @@
 					.padding(20)
 					.text('The data could not be loaded')
 					.justify('space-between')
-					.row(
+					.columns(
 						$('button')
 						.text('retry with success')
 						.onclick(function(){

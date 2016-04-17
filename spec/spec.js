@@ -1,7 +1,7 @@
 
-var $ = Schema.$
+var $ = Flow.$
 
-describe('schema', function(){
+describe('flow', function(){
 
 	it("should produce a vNode", function() {
   		var vNode = $('div')
@@ -311,7 +311,7 @@ describe('schema', function(){
 		expect(domNode.style.color).toEqual('blue');
 	});
 
-	var $action = Schema.$action
+	var $action = Flow.$action
 
 
 	it("can pull actions to add/change styles", function() {
@@ -497,7 +497,7 @@ describe('schema', function(){
 	it("have children structured inside a flexbox column", function() {
 
 		var vNode = $()
-			.column(
+			.rows(
 				$('div'),
 				$('div')
 			)
@@ -510,7 +510,7 @@ describe('schema', function(){
 	it("have children structured inside a flexbox row", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div'),
 				$('div')
 			)
@@ -523,7 +523,7 @@ describe('schema', function(){
 	it("can have children/items have order properties", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div').order(2),
 				$('div').order(1)
 			)
@@ -536,7 +536,7 @@ describe('schema', function(){
 	it("can have children/items have grow and shrink properties", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div').grow(1),
 				$('div').shrink(1)
 			)
@@ -549,7 +549,7 @@ describe('schema', function(){
 	it("can have children/items wrap within the parent/container", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div'),
 				$('div')
 			)
@@ -562,9 +562,8 @@ describe('schema', function(){
 	it("can have children/items align themselves using various declarations", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div').align('flex-start'),
-				$('div').center(),
 				$('div').align('end'),
 				$('div').baseline(),
 				$('div').stretch(),
@@ -572,18 +571,17 @@ describe('schema', function(){
 			)
 
 		expect(vNode.vNode().children[0].properties.style['align-self']).toEqual('flex-start');
-		expect(vNode.vNode().children[1].properties.style['align-self']).toEqual('center');
-		expect(vNode.vNode().children[2].properties.style['align-self']).toEqual('flex-end');
-		expect(vNode.vNode().children[3].properties.style['align-self']).toEqual('baseline');
-		expect(vNode.vNode().children[4].properties.style['align-self']).toEqual('stretch');
-		expect(vNode.vNode().children[5].properties.style['align-self']).toEqual('auto');
+		expect(vNode.vNode().children[1].properties.style['align-self']).toEqual('flex-end');
+		expect(vNode.vNode().children[2].properties.style['align-self']).toEqual('baseline');
+		expect(vNode.vNode().children[3].properties.style['align-self']).toEqual('stretch');
+		expect(vNode.vNode().children[4].properties.style['align-self']).toEqual('auto');
 		vNode.removeStyles()
 	});
 
 	it("can have children/items align within the parent/container", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div'),
 				$('div')
 			)
@@ -592,7 +590,7 @@ describe('schema', function(){
 		expect(vNode.vNode().properties.style['align-items']).toEqual('stretch');
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div'),
 				$('div')
 			)
@@ -606,7 +604,7 @@ describe('schema', function(){
 	it("can align content where there is more than one line of flex items", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div'),
 				$('div')
 			)
@@ -620,7 +618,7 @@ describe('schema', function(){
 	it("can supply responsive grid attributes", function() {
 
 		var vNode = $()
-			.row(
+			.columns(
 				$('div')
 					.xs(12).sm(8).md(6).lg(4)
 			)
@@ -630,33 +628,33 @@ describe('schema', function(){
 		vNode.removeStyles()
 	});
 
-	it("can supply responsive grid offsets", function() {
+	// it("can supply responsive grid offsets", function() {
 
-		var vNode = $()
-			.row(
-				$('div')
-					.sm().offset(3)
-					.md().offset(6)
-			)
+	// 	var vNode = $()
+	// 		.columns(
+	// 			$('div')
+	// 				.sm().offset(3)
+	// 				.md().offset(6)
+	// 		)
 
-		expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-offset-3 col-md-offset-6 ');
+	// 	expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-offset-3 col-md-offset-6 ');
 
-		vNode.removeStyles()
-	});
+	// 	vNode.removeStyles()
+	// });
 
-	it("can supply responsive grid offsets with cols", function() {
+	// it("can supply responsive grid offsets with cols", function() {
 
-		var vNode = $()
-			.row(
-				$('div')
-					.sm(9).offset(3)
-					.md(6).offset(6)
-			)
+	// 	var vNode = $()
+	// 		.columns(
+	// 			$('div')
+	// 				.sm(9).offset(3)
+	// 				.md(6).offset(6)
+	// 		)
 
-		expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-9 col-sm-offset-3 col-md-6 col-md-offset-6 ');
+	// 	expect(vNode.vNode().children[0].properties.className).toEqual('col-sm-9 col-sm-offset-3 col-md-6 col-md-offset-6 ');
 
-		vNode.removeStyles()
-	});
+	// 	vNode.removeStyles()
+	// });
 
 	it("can take data in the constructor and can pipe through it", function() {
 
