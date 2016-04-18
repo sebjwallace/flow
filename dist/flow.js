@@ -1,16 +1,6 @@
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.Flow = f()}})(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-/**!
- * ajax - v1.0.10
- * Ajax module in Vanilla JS
- * https://github.com/fdaciuk/ajax
 
- * Sun Mar 06 2016 16:13:44 GMT-0300 (BRT)
- * MIT (c) Fernando Daciuk
-*/
-!function(e,t){"use strict";"function"==typeof define&&define.amd?define("ajax",t):"object"==typeof exports?exports=module.exports=t():(e.Ajax=t(),e.ajax=t())}(this,function(){"use strict";function e(t){void 0!==this&&console.warn(["Instance with `new` is deprecated. ","This will be removed in `v2.0.0` version."].join("")),this instanceof e&&console.warn(["Ajax constructor is deprecated. This will be removed in ","`v2.0.0`. Use ajax (lowercase version) without `new` ","keyword instead"].join("")),t=t||{};var n={},o={};return o.methods={then:function(){},"catch":function(){},always:function(){},done:function(){},error:function(){}},o.maybeData=function(e){return e||null},o.httpMethods=["get","post","put","delete"],o.httpMethods.forEach(function(e){n[e]=function(n,r){return o.xhrConnection(e,n,o.maybeData(r),t)}}),o.xhrConnection=function(e,t,n,r){var s=new XMLHttpRequest;return s.open(e,t||"",!0),o.setHeaders(s,r.headers),s.addEventListener("readystatechange",o.ready,!1),s.send(o.objectToQueryString(n)),o.promises()},o.setHeaders=function(e,t){t=t||{},o.hasContentType(t)||(t["Content-Type"]="application/x-www-form-urlencoded"),Object.keys(t).forEach(function(n){e.setRequestHeader(n,t[n])})},o.hasContentType=function(e){return Object.keys(e).some(function(e){return"content-type"===e.toLowerCase()})},o.ready=function(){var e=this;e.readyState===e.DONE&&(e.removeEventListener("readystatechange",o.ready,!1),o.methods.always.apply(o.methods,o.parseResponse(e)),e.status>=200&&e.status<300?(o.methods.then.apply(o.methods,o.parseResponse(e)),o.methods.done.apply(o.methods,o.parseResponse(e))):(o.methods["catch"].apply(o.methods,o.parseResponse(e)),o.methods.error.apply(o.methods,o.parseResponse(e))))},o.parseResponse=function(e){var t;try{t=JSON.parse(e.responseText)}catch(n){t=e.responseText}return[t,e]},o.promises=function(){var e={};return Object.keys(o.methods).forEach(function(t){e[t]=o.generatePromise.call(this,t)},this),e},o.generatePromise=function(e){return function(t){return o.generateDeprecatedMessage(e),o.methods[e]=t,this}},o.generateDeprecatedMessage=function(e){var t="@fdaciuk/ajax: `%s` is deprecated and will be removed in v2.0.0. Use `%s` instead.";switch(e){case"done":console.warn(t,"done","then");break;case"error":console.warn(t,"error","catch")}},o.objectToQueryString=function(e){return o.isObject(e)?o.getQueryString(e):e},o.getQueryString=function(e){return Object.keys(e).map(function(t){return[encodeURIComponent(t),"=",encodeURIComponent(e[t])].join("")}).join("&")},o.isObject=function(e){return"[object Object]"===Object.prototype.toString.call(e)},t.method&&t.url?o.xhrConnection(t.method,t.url,o.maybeData(t.data),t):n}return e});
 },{}],2:[function(require,module,exports){
-
-},{}],3:[function(require,module,exports){
 /*!
  * Cross-Browser Split 1.1.1
  * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
@@ -118,7 +108,7 @@ module.exports = (function split(undef) {
   return self;
 })();
 
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 /* MIT license */
 
 module.exports = {
@@ -818,7 +808,7 @@ for (var key in cssKeywords) {
   reverseKeywords[JSON.stringify(cssKeywords[key])] = key;
 }
 
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 var conversions = require("./conversions");
 
 var convert = function() {
@@ -911,7 +901,7 @@ Converter.prototype.getValues = function(space) {
 });
 
 module.exports = convert;
-},{"./conversions":4}],6:[function(require,module,exports){
+},{"./conversions":3}],5:[function(require,module,exports){
 module.exports = {
 	"aliceblue": [240, 248, 255],
 	"antiquewhite": [250, 235, 215],
@@ -1062,7 +1052,7 @@ module.exports = {
 	"yellow": [255, 255, 0],
 	"yellowgreen": [154, 205, 50]
 };
-},{}],7:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 /* MIT license */
 var colorNames = require('color-name');
 
@@ -1285,7 +1275,7 @@ for (var name in colorNames) {
    reverseNames[colorNames[name]] = name;
 }
 
-},{"color-name":6}],8:[function(require,module,exports){
+},{"color-name":5}],7:[function(require,module,exports){
 /* MIT license */
 var convert = require('color-convert');
 var string = require('color-string');
@@ -1734,7 +1724,7 @@ Color.prototype.setChannel = function (space, index, val) {
 
 module.exports = Color;
 
-},{"color-convert":5,"color-string":7}],9:[function(require,module,exports){
+},{"color-convert":4,"color-string":6}],8:[function(require,module,exports){
 'use strict';
 
 var OneVersionConstraint = require('individual/one-version');
@@ -1756,7 +1746,7 @@ function EvStore(elem) {
     return hash;
 }
 
-},{"individual/one-version":12}],10:[function(require,module,exports){
+},{"individual/one-version":11}],9:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -1775,7 +1765,7 @@ if (typeof document !== 'undefined') {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":2}],11:[function(require,module,exports){
+},{"min-document":1}],10:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -1798,7 +1788,7 @@ function Individual(key, value) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 var Individual = require('./index.js');
@@ -1822,29 +1812,29 @@ function OneVersion(moduleName, version, defaultValue) {
     return Individual(key, defaultValue);
 }
 
-},{"./index.js":11}],13:[function(require,module,exports){
+},{"./index.js":10}],12:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
 	return typeof x === "object" && x !== null;
 };
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":20}],15:[function(require,module,exports){
+},{"./vdom/create-element.js":19}],14:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":40}],16:[function(require,module,exports){
+},{"./vtree/diff.js":39}],15:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":27}],17:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":26}],16:[function(require,module,exports){
 var diff = require("./diff.js")
 var patch = require("./patch.js")
 var h = require("./h.js")
@@ -1861,12 +1851,12 @@ module.exports = {
     VText: VText
 }
 
-},{"./create-element.js":14,"./diff.js":15,"./h.js":16,"./patch.js":18,"./vnode/vnode.js":36,"./vnode/vtext.js":38}],18:[function(require,module,exports){
+},{"./create-element.js":13,"./diff.js":14,"./h.js":15,"./patch.js":17,"./vnode/vnode.js":35,"./vnode/vtext.js":37}],17:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":23}],19:[function(require,module,exports){
+},{"./vdom/patch.js":22}],18:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -1965,7 +1955,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":31,"is-object":13}],20:[function(require,module,exports){
+},{"../vnode/is-vhook.js":30,"is-object":12}],19:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -2013,7 +2003,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":29,"../vnode/is-vnode.js":32,"../vnode/is-vtext.js":33,"../vnode/is-widget.js":34,"./apply-properties":19,"global/document":10}],21:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":28,"../vnode/is-vnode.js":31,"../vnode/is-vtext.js":32,"../vnode/is-widget.js":33,"./apply-properties":18,"global/document":9}],20:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -2100,7 +2090,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -2253,7 +2243,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":34,"../vnode/vpatch.js":37,"./apply-properties":19,"./update-widget":24}],23:[function(require,module,exports){
+},{"../vnode/is-widget.js":33,"../vnode/vpatch.js":36,"./apply-properties":18,"./update-widget":23}],22:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -2335,7 +2325,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./create-element":20,"./dom-index":21,"./patch-op":22,"global/document":10,"x-is-array":41}],24:[function(require,module,exports){
+},{"./create-element":19,"./dom-index":20,"./patch-op":21,"global/document":9,"x-is-array":40}],23:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -2352,7 +2342,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":34}],25:[function(require,module,exports){
+},{"../vnode/is-widget.js":33}],24:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -2381,7 +2371,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":9}],26:[function(require,module,exports){
+},{"ev-store":8}],25:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -2400,7 +2390,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -2539,7 +2529,7 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":30,"../vnode/is-vhook":31,"../vnode/is-vnode":32,"../vnode/is-vtext":33,"../vnode/is-widget":34,"../vnode/vnode.js":36,"../vnode/vtext.js":38,"./hooks/ev-hook.js":25,"./hooks/soft-set-hook.js":26,"./parse-tag.js":28,"x-is-array":41}],28:[function(require,module,exports){
+},{"../vnode/is-thunk":29,"../vnode/is-vhook":30,"../vnode/is-vnode":31,"../vnode/is-vtext":32,"../vnode/is-widget":33,"../vnode/vnode.js":35,"../vnode/vtext.js":37,"./hooks/ev-hook.js":24,"./hooks/soft-set-hook.js":25,"./parse-tag.js":27,"x-is-array":40}],27:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
@@ -2595,7 +2585,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":3}],29:[function(require,module,exports){
+},{"browser-split":2}],28:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -2637,14 +2627,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":30,"./is-vnode":32,"./is-vtext":33,"./is-widget":34}],30:[function(require,module,exports){
+},{"./is-thunk":29,"./is-vnode":31,"./is-vtext":32,"./is-widget":33}],29:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],31:[function(require,module,exports){
+},{}],30:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -2653,7 +2643,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],32:[function(require,module,exports){
+},{}],31:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -2662,7 +2652,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":35}],33:[function(require,module,exports){
+},{"./version":34}],32:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -2671,17 +2661,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":35}],34:[function(require,module,exports){
+},{"./version":34}],33:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],35:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 module.exports = "2"
 
-},{}],36:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -2755,7 +2745,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":30,"./is-vhook":31,"./is-vnode":32,"./is-widget":34,"./version":35}],37:[function(require,module,exports){
+},{"./is-thunk":29,"./is-vhook":30,"./is-vnode":31,"./is-widget":33,"./version":34}],36:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -2779,7 +2769,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":35}],38:[function(require,module,exports){
+},{"./version":34}],37:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -2791,7 +2781,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":35}],39:[function(require,module,exports){
+},{"./version":34}],38:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -2851,7 +2841,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":31,"is-object":13}],40:[function(require,module,exports){
+},{"../vnode/is-vhook":30,"is-object":12}],39:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -3280,7 +3270,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":29,"../vnode/is-thunk":30,"../vnode/is-vnode":32,"../vnode/is-vtext":33,"../vnode/is-widget":34,"../vnode/vpatch":37,"./diff-props":39,"x-is-array":41}],41:[function(require,module,exports){
+},{"../vnode/handle-thunk":28,"../vnode/is-thunk":29,"../vnode/is-vnode":31,"../vnode/is-vtext":32,"../vnode/is-widget":33,"../vnode/vpatch":36,"./diff-props":38,"x-is-array":40}],40:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -3289,6 +3279,185 @@ module.exports = nativeIsArray || isArray
 function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
+
+},{}],41:[function(require,module,exports){
+'use strict';
+
+;(function (root, factory) {
+  'use strict';
+  /* istanbul ignore next */
+  if (typeof define === 'function' && define.amd) {
+    define('ajax', factory);
+  } else if (typeof exports === 'object') {
+    exports = module.exports = factory();
+  } else {
+    // @deprecated
+    root.Ajax = factory();
+
+    root.ajax = factory();
+  }
+})(undefined, function () {
+  'use strict';
+
+  function Ajax(options) {
+    if (this !== undefined) {
+      console.warn(['Instance with `new` is deprecated. ', 'This will be removed in `v2.0.0` version.'].join(''));
+    }
+
+    if (this instanceof Ajax) {
+      console.warn(['Ajax constructor is deprecated. This will be removed in ', '`v2.0.0`. Use ajax (lowercase version) without `new` ', 'keyword instead'].join(''));
+    }
+
+    options = options || {};
+
+    var $public = {};
+    var $private = {};
+
+    $private.methods = {
+      then: function then() {},
+      'catch': function _catch() {},
+      always: function always() {},
+
+      // @deprecated
+      done: function done() {},
+      // @deprecated
+      error: function error() {}
+    };
+
+    $private.maybeData = function maybeData(data) {
+      return data || null;
+    };
+
+    $private.httpMethods = ['get', 'post', 'put', 'delete'];
+
+    $private.httpMethods.forEach(function (method) {
+      $public[method] = function (url, data) {
+        return $private.xhrConnection(method, url, $private.maybeData(data), options);
+      };
+    });
+
+    $private.xhrConnection = function xhrConnection(type, url, data, options) {
+      var xhr = new XMLHttpRequest();
+      xhr.open(type, url || '', true);
+      $private.setHeaders(xhr, options.headers);
+      xhr.addEventListener('readystatechange', $private.ready, false);
+      xhr.send($private.objectToQueryString(data));
+      return $private.promises();
+    };
+
+    $private.setHeaders = function setHeaders(xhr, headers) {
+      headers = headers || {};
+
+      if (!$private.hasContentType(headers)) {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded';
+      }
+
+      Object.keys(headers).forEach(function (name) {
+        if (headers[name]) {
+          xhr.setRequestHeader(name, headers[name]);
+        }
+      });
+    };
+
+    $private.hasContentType = function hasContentType(headers) {
+      return Object.keys(headers).some(function (name) {
+        return name.toLowerCase() === 'content-type';
+      });
+    };
+
+    $private.ready = function ready() {
+      var xhr = this;
+      if (xhr.readyState === xhr.DONE) {
+        xhr.removeEventListener('readystatechange', $private.ready, false);
+        $private.methods.always.apply($private.methods, $private.parseResponse(xhr));
+        if (xhr.status >= 200 && xhr.status < 300) {
+          $private.methods.then.apply($private.methods, $private.parseResponse(xhr));
+          // @deprecated
+          $private.methods.done.apply($private.methods, $private.parseResponse(xhr));
+        } else {
+          $private.methods['catch'].apply($private.methods, $private.parseResponse(xhr));
+          // @deprecated
+          $private.methods.error.apply($private.methods, $private.parseResponse(xhr));
+        }
+      }
+    };
+
+    $private.parseResponse = function parseResponse(xhr) {
+      var result;
+      try {
+        result = JSON.parse(xhr.responseText);
+      } catch (e) {
+        result = xhr.responseText;
+      }
+      return [result, xhr];
+    };
+
+    $private.promises = function promises() {
+      var allPromises = {};
+      Object.keys($private.methods).forEach(function (method) {
+        allPromises[method] = $private.generatePromise.call(this, method);
+      }, this);
+      return allPromises;
+    };
+
+    $private.generatePromise = function generatePromise(method) {
+      return function (callback) {
+        $private.generateDeprecatedMessage(method);
+        $private.methods[method] = callback;
+        return this;
+      };
+    };
+
+    $private.generateDeprecatedMessage = function generateDeprecatedMessage(method) {
+      var deprecatedMessage = '@fdaciuk/ajax: `%s` is deprecated and will be removed in v2.0.0. Use `%s` instead.';
+      switch (method) {
+        case 'done':
+          console.warn(deprecatedMessage, 'done', 'then');
+          break;
+        case 'error':
+          console.warn(deprecatedMessage, 'error', 'catch');
+      }
+    };
+
+    $private.objectToQueryString = function objectToQueryString(data) {
+      return $private.isObject(data) ? $private.getQueryString(data) : data;
+    };
+
+    $private.getQueryString = function getQueryString(object) {
+      return Object.keys(object).map(function (item) {
+        return [encodeURIComponent(item), '=', encodeURIComponent(object[item])].join('');
+      }).join('&');
+    };
+
+    $private.isObject = function isObject(data) {
+      return Object.prototype.toString.call(data) === '[object Object]';
+    };
+
+    if (options.method && options.url) {
+      return $private.xhrConnection(options.method, options.url, $private.maybeData(options.data), options);
+    }
+
+    $public.json = function json(url, callback) {
+      var tag = document.createElement('script');
+      tag.type = 'text/javascript';
+      var concat = url.match(/\?/) ? '&' : '?';
+      var key = Math.random().toString(36).slice(2).substring(16);
+      var callbackName = 'jsonp_callback_' + key;
+      tag.src = url + concat + 'callback=' + callbackName;
+      window[callbackName] = function (data) {
+        callback.call(window, data);
+        document.getElementsByTagName('head')[0].removeChild(tag);
+        tag = null;
+        delete window[callbackName];
+      };
+      document.getElementsByTagName('head')[0].appendChild(tag);
+    };
+
+    return $public;
+  }
+
+  return Ajax;
+});
 
 },{}],42:[function(require,module,exports){
 'use strict';
@@ -3301,25 +3470,32 @@ exports.$ = $;
 var vdom = require('virtual-dom');
 var h = vdom.h;
 
-var ajax = require('@fdaciuk/ajax');
+var ajax = require('./ajax');
+var $ajax = ajax;
 
+exports.$ajax = $ajax;
 var grid = require('./flexboxGrid');
 grid.mount();
 
 function DOM() {
 
-  var tree = vdom.h('#root', '');
-  var rootNode = vdom.create(tree);
-  document.body.appendChild(rootNode);
+  var _tree = vdom.h('#root', '');
+  var _rootNode = vdom.create(_tree);
+  document.body.appendChild(_rootNode);
 
   function update(newTree) {
-    var patches = vdom.diff(tree, newTree);
-    rootNode = vdom.patch(rootNode, patches);
-    tree = newTree;
+    var patches = vdom.diff(_tree, newTree);
+    _rootNode = vdom.patch(_rootNode, patches);
+    _tree = newTree;
   }
   return {
-    render: function render(tree) {
-      update(tree);
+    render: function render(newTree) {
+      update(newTree);
+    },
+    reload: function reload() {
+      document.body.removeChild(_rootNode);
+      _rootNode = vdom.create(_tree);
+      document.body.appendChild(_rootNode);
     }
   };
 }
@@ -3346,85 +3522,55 @@ function getInputType(input) {
   if (!input) return 'NULL';
   if (typeof input == 'function') return 'NULL';
   if (input.window) if (input.window = window.window) return 'NULL';
+  if (typeof input == 'string') {
+    if (input == 'GET' || input == 'POST' || input == 'JSON') return 'HTTP';
+  }
   if (typeof input == 'string') return 'TAG';
   if (input.type) if (input.type == 'vNodeChain') return 'CHAIN';
   if (Array.isArray(input)) return 'DATA';
   if (typeof input == 'object') {
-    if (input.GET) {
-      return 'HTTP';
-    } else if (Object.keys(input).length > 0) return 'DATA';
+    if (Object.keys(input).length > 0) return 'DATA';
   }
 }
 
-function $(tag, attributes, _children) {
+function $(tag, attributes, children) {
+
+  /**********************************
+  * Private Methods
+  **********************************/
 
   function _extend(abstracts) {
     abstracts.forEach(function (abstract) {
       var vNode = abstract.vNode();
       for (var prop in vNode.properties) {
-        if (prop != 'style') attributes[prop] = vNode.properties[prop];
+        if (prop != 'style') _attributes[prop] = vNode.properties[prop];
       }
       var styles = vNode.properties.style;
       if (styles) {
-        if (!attributes.style) attributes.style = {};
-        for (var style in styles) attributes['style'][style] = styles[style];
+        if (!_attributes.style) _attributes.style = {};
+        for (var style in styles) _attributes['style'][style] = styles[style];
       }
       var abstractChildren = abstract.getChildren();
       for (var child in abstractChildren) _children.push(abstractChildren[child]);
     });
   }
 
-  attributes = attributes || {};
-  _children = _children || [];
-  var domElement = null;
-  var _container = null;
-  var _onload = function onload() {};
-
-  var _data = null;
-  var _http = null;
-  var _mediaSize = '';
-
-  var _ajaxCallback = null;
-  var _ajaxSuccess = null;
-  var _ajaxError = null;
-
-  if (getInputType(tag) == 'DATA') {
-    _data = tag;
-    tag = null;
-  } else if (getInputType(tag) == 'CHAIN') {
-    tag = 'DIV';
-    var abstracts = parseArgs(arguments);
-    _extend(abstracts);
-  } else if (getInputType(tag) == 'NULL') {
-    tag = 'DIV';
-  } else if (getInputType(tag) == 'HTTP') {
-    (function () {
-      var proceed = function proceed(vNodeChain) {
-        attributes = {};
-        _children = [];
-        _extend([vNodeChain]);
-        chain.render();
-      };
-
-      ajax().get(tag.GET).always(function (res, xhr) {
-        if (_ajaxCallback) proceed(_ajaxCallback(res, xhr));
-      }).then(function (res, xhr) {
-        if (_ajaxSuccess) proceed(_ajaxSuccess(res, xhr));
-      })['catch'](function (res, xhr) {
-        if (_ajaxError) proceed(_ajaxError(res, xhr));
-      });
-      tag = null;
-    })();
+  function _addAttribute(attr, value) {
+    _attributes[attr] = value;
   }
 
-  function addStyle(attr, value) {
-    if (!attributes.style) attributes.style = {};
-    attributes.style[attr] = value;
+  function _addStyle(attr, value) {
+    if (!_attributes.style) _attributes.style = {};
+    _attributes.style[attr] = value;
   }
 
   function addClass(name) {
-    if (!attributes.className) attributes.className = '';
-    attributes.className += name + ' ';
+    if (!_attributes.className) _attributes.className = '';
+    _attributes.className += name + ' ';
+  }
+
+  function addChild(child) {
+    _children.push(child);
   }
 
   function parseRGBA(rgba) {
@@ -3446,43 +3592,147 @@ function $(tag, attributes, _children) {
     return new Hook();
   }
 
+  function replaceDomNode(vNodeChain) {
+    var vNode = vNodeChain.vNode();
+    var el = vdom.create(vNode);
+    domElement.innerHTML = '';
+    domElement.removeAttribute('style');
+    domElement.appendChild(el);
+  }
+
   function onReturn() {
     return chain;
   }
 
+  /**********************************
+  * Private State
+  **********************************/
+
+  var _attributes = attributes || {};
+  var _children = children || [];
+  var domElement = null;
+  var _container = null;
+  var _onload = function onload() {};
+
+  var _data = null;
+  var _http = null;
+  var _mediaSize = '';
+
+  var _ajaxCallback = null;
+  var _ajaxSuccess = null;
+  var _ajaxError = null;
+
+  var _chainState = null;
+
+  /**********************************
+  * Initialize State
+  **********************************/
+
+  if (getInputType(tag) == 'DATA') {
+    _data = tag;
+    tag = null;
+    _chainState = 'DATA';
+  } else if (getInputType(tag) == 'CHAIN') {
+    tag = 'DIV';
+    var abstracts = parseArgs(arguments);
+    _extend(abstracts);
+    _chainState = 'ELEMENT';
+  } else if (getInputType(tag) == 'NULL') {
+    tag = 'DIV';
+    _chainState = 'ERROR';
+  } else if (getInputType(tag) == 'HTTP') {
+    var method = tag.toLowerCase();
+    var url = attributes;
+    var headers = children || {};
+    _attributes = {};
+    _children = [];
+
+    if (method == 'json') {
+      ajax().json(url, function (data) {
+        replaceDomNode(_ajaxSuccess(data));
+      });
+    } else {
+      ajax(headers)[method](url).always(function (res, xhr) {
+        if (_ajaxCallback) {
+          replaceDomNode(_ajaxCallback(res, xhr));
+          _chainState = 'DATA';
+        }
+      }).then(function (res, xhr) {
+        if (_ajaxSuccess) {
+          replaceDomNode(_ajaxSuccess(res, xhr));
+          _chainState = 'DATA';
+        }
+      })['catch'](function (res, xhr) {
+        if (_ajaxError) {
+          replaceDomNode(_ajaxError(res, xhr));
+          _chainState = 'DATA';
+        }
+      });
+    }
+    tag = null;
+    _chainState = 'AJAX';
+  }
+
+  /*================================
+  * CHAIN or Public Methods
+  ================================*/
+
   var chain = {
+
+    type: 'vNodeChain',
+
     pipe: function pipe(fn) {
       _data = fn(_data);
       return onReturn();
     },
-    attr: (function (_attr) {
-      function attr(_x, _x2) {
-        return _attr.apply(this, arguments);
-      }
 
-      attr.toString = function () {
-        return _attr.toString();
-      };
+    /**********************************
+    * Attributes
+    **********************************/
 
-      return attr;
-    })(function (attr, val) {
-      attributes[attr] = val;
-      return onReturn();
-    }),
-    attribute: function attribute() {
-      attributes[attr] = val;
+    attr: function attr(_attr, val) {
+      _addAttribute(_attr, val);
       return onReturn();
     },
-    setAttribute: function setAttribute() {
-      attributes[attr] = val;
+    attribute: function attribute(attr, val) {
+      _addAttribute(attr, val);
+      return onReturn();
+    },
+    addAttribute: function addAttribute(attr, val) {
+      _addAttribute(attr, val);
       return onReturn();
     },
     id: function id(_id) {
-      attributes['id'] = _id;
+      _addAttribute('id', _id);
       return onReturn();
     },
     'class': function _class(className) {
       addClass(className);
+      return onReturn();
+    },
+    src: function src(path) {
+      _addAttribute('src', path);
+      return onReturn();
+    },
+    href: function href(path) {
+      _addAttribute('href', path);
+      return onReturn();
+    },
+    placeholder: function placeholder(text) {
+      _addAttribute('placeholder', text);
+      return onReturn();
+    },
+    value: function value(_value) {
+      _addAttribute('value', _value);
+      return onReturn();
+    },
+
+    /**********************************
+    * Children
+    **********************************/
+
+    text: function text(_text) {
+      addChild(_text);
       return onReturn();
     },
     children: function children() {
@@ -3490,36 +3740,89 @@ function $(tag, attributes, _children) {
       args = args.map(function (arg) {
         return arg.vNode();
       });
-      _children.push(args);
+      addChild(args);
       return onReturn();
     },
-    src: function src(path) {
-      attributes.src = path;
+    columns: function columns() {
+      _addStyle('display', 'flex');
+      _addStyle('flex-direction', 'row');
+      if (arguments) parseArgs(arguments).forEach(function (child) {
+        addChild(child.vNode());
+      });
       return onReturn();
     },
-    href: function href(path) {
-      attributes.href = path;
+    rows: function rows() {
+      _addStyle('display', 'flex');
+      _addStyle('flex-direction', 'column');
+      if (arguments) parseArgs(arguments).forEach(function (child) {
+        addChild(child.vNode());
+      });
       return onReturn();
     },
-    text: function text(_text) {
-      _children.push(_text);
-      return onReturn();
-    },
+
+    /**********************************
+    * Events
+    **********************************/
+
     event: function event(_event, fn, params) {
       if (typeof fn == 'string') {
-        attributes[_event] = function () {
+        _addAttribute(_event, function () {
           $action.push(fn, params).call();
-        };
+        });
         return onReturn();
       }
       if (getInputType(fn) == 'CHAIN') {
-        attributes[_event] = function () {
+        _addAttribute(_event, function () {
           var styles = fn.vNode().properties.style;
           for (var style in styles) domElement.style[style] = styles[style];
-        };
+        });
         return onReturn();
       }
-      attributes[_event] = fn;
+      _addAttribute(_event, fn);
+      return onReturn();
+    },
+    onchange: function onchange(fn, params) {
+      chain.event('onchange', fn, params);
+      return onReturn();
+    },
+    onclick: function onclick(fn, params) {
+      chain.event('onclick', fn, params);
+      return onReturn();
+    },
+    ondbclick: function ondbclick(fn, params) {
+      chain.event('ondbclick', fn, params);
+      return onReturn();
+    },
+    onmouseenter: function onmouseenter(fn, params) {
+      chain.event('onmouseenter', fn, params);
+      return onReturn();
+    },
+    onmouseleave: function onmouseleave(fn, params) {
+      chain.event('onmouseleave', fn, params);
+      return onReturn();
+    },
+    onkeypress: function onkeypress(fn, params) {
+      chain.event('onkeypress', fn, params);
+      return onReturn();
+    },
+    onkeydown: function onkeydown(fn, params) {
+      chain.event('onkeydown', fn, params);
+      return onReturn();
+    },
+    onkeyup: function onkeyup(fn, params) {
+      chain.event('onkeyup', fn, params);
+      return onReturn();
+    },
+    onfocus: function onfocus(fn, params) {
+      chain.event('onfocus', fn, params);
+      return onReturn();
+    },
+    onblur: function onblur(fn, params) {
+      chain.event('onblur', fn, params);
+      return onReturn();
+    },
+    onload: function onload(fn) {
+      _onload = fn;
       return onReturn();
     },
     action: function action(handler, vNode) {
@@ -3532,104 +3835,102 @@ function $(tag, attributes, _children) {
       });
       return onReturn();
     },
-    onclick: function onclick(fn, params) {
-      chain.event('onclick', fn, params);
+
+    /**********************************
+    * Styles
+    **********************************/
+
+    style: function style(attr, value) {
+      _addStyle(attr, value);
       return onReturn();
     },
-    onkeypress: function onkeypress(fn, params) {
-      chain.event('onkeypress', fn, params);
-      return onReturn();
-    },
-    onload: function onload(fn) {
-      _onload = fn;
-      return onReturn();
-    },
-    placeholder: function placeholder(text) {
-      attributes.placeholder = text;
-      return onReturn();
-    },
-    value: function value(_value) {
-      attributes.value = _value;
+    addStyle: function addStyle(attr, value) {
+      _addStyle(attr, value);
       return onReturn();
     },
     position: function position(_position) {
-      addStyle('position', _position);
+      _addStyle('position', _position);
       return onReturn();
     },
     display: function display(_display) {
-      addStyle('display', _display);
+      _addStyle('display', _display);
       return onReturn();
     },
     hide: function hide() {
-      addStyle('display', 'none');
+      _addStyle('display', 'none');
       return onReturn();
     },
     show: function show() {
-      addStyle('display', 'block');
+      _addStyle('display', 'block');
       return onReturn();
     },
     color: function color(_color) {
       if (arguments.length > 2) _color = parseRGBA(arguments);
       _color = parseColor(_color);
-      addStyle('color', _color);
+      _addStyle('color', _color);
       return onReturn();
     },
     background: function background(color) {
       if (arguments.length > 2) color = parseRGBA(arguments);
       color = parseColor(color);
-      addStyle('background-color', color);
+      _addStyle('background-color', color);
       return onReturn();
     },
     opacity: function opacity(value) {
-      addStyle('opacity', value);
+      _addStyle('opacity', value);
       return onReturn();
     },
     height: function height(_height, unit) {
       if (unit) _height = _height + unit;else if (!isNaN(_height)) _height = _height + 'px';
-      addStyle('height', _height);
+      _addStyle('height', _height);
       return onReturn();
     },
     width: function width(_width, unit) {
       if (unit) _width = _width + unit;else if (!isNaN(_width)) _width = _width + 'px';
-      addStyle('width', _width);
+      _addStyle('width', _width);
       return onReturn();
     },
     size: function size() {
       var sizes = parseUnits(arguments);
-      addStyle('height', sizes[0]);
-      if (sizes.length > 1) addStyle('width', sizes[1]);
+      _addStyle('height', sizes[0]);
+      if (sizes.length > 1) _addStyle('width', sizes[1]);
       return onReturn();
     },
     padding: function padding() {
       var padding = parseUnits(arguments).join('');
-      addStyle('padding', padding);
+      _addStyle('padding', padding);
       return onReturn();
     },
-    margin: function margin() {
+    margin: function margin(attr, value) {
       var margin = parseUnits(arguments).join('');
-      addStyle('margin', margin);
+      _addStyle('margin', margin);
       return onReturn();
     },
     offset: function offset(side, measure, unit) {
       unit = 'px' || unit;
-      addStyle('margin-' + side, '-' + measure + unit);
+      _addStyle('margin-' + side, '-' + measure + unit);
       return onReturn();
     },
     border: function border(size, style, color) {
-      addStyle('border', size + 'px ' + style + ' ' + parseColor(color));
+      _addStyle('border', size + 'px ' + style + ' ' + parseColor(color));
       return onReturn();
     },
     font: function font(attr, value, unit) {
-      unit = '' || unit;
-      addStyle('font-' + attr, value + unit);
+      unit = unit || ' ';
+      _addStyle('font-' + attr, value + unit);
       return onReturn();
     },
     textAlign: function textAlign(align) {
-      addStyle('text-align', align);
+      _addStyle('text-align', align);
+      return onReturn();
+    },
+    letter: function letter(attr, val, unit) {
+      unit = unit || 'em';
+      _addStyle('letter-' + attr, val + unit);
       return onReturn();
     },
     letterSpacing: function letterSpacing(space) {
-      addStyle('letter-spacing', space + 'px');
+      _addStyle('letter-spacing', space + 'px');
       return onReturn();
     },
     transition: function transition(styles, duration) {
@@ -3637,28 +3938,34 @@ function $(tag, attributes, _children) {
         duration = styles;
         styles = 'all';
       }
-      addStyle('transition', styles + ' ' + duration + 's');
+      _addStyle('transition', styles + ' ' + duration + 's');
       return onReturn();
     },
-    flex: function flex() {
-      addStyle('display', 'flex');
-      addStyle('flex-wrap', 'wrap');
+    uppercase: function uppercase() {
+      _addStyle('text-transform', 'uppercase');
       return onReturn();
     },
-    columns: function columns() {
-      addStyle('display', 'flex');
-      addStyle('flex-direction', 'row');
-      if (arguments) parseArgs(arguments).forEach(function (child) {
-        _children.push(child.vNode());
-      });
+    overflow: function overflow(val) {
+      _addStyle('overflow', val);
       return onReturn();
     },
-    rows: function rows() {
-      chain.flex();
-      addStyle('flex-direction', 'column');
-      if (arguments) parseArgs(arguments).forEach(function (child) {
-        _children.push(child.vNode());
-      });
+    hover: function hover(vNodeChain) {
+      chain.event('onmouseleave', $(chain));
+      chain.event('onmouseenter', vNodeChain);
+      return onReturn();
+    },
+    max: function max(attr, value, unit) {
+      unit = unit || 'px';
+      _addStyle('max-' + attr, value + unit);
+      return onReturn();
+    },
+
+    /**********************************
+    * Flex
+    **********************************/
+
+    flex: function flex(value) {
+      _addStyle('flex', value);
       return onReturn();
     },
     centered: function centered() {
@@ -3674,38 +3981,38 @@ function $(tag, attributes, _children) {
     },
     justify: function justify(align) {
       if (align == 'start' || align == 'end') align = 'flex-' + align;
-      addStyle('justify-content', align);
+      _addStyle('justify-content', align);
       return onReturn();
     },
     order: function order(_order) {
-      addStyle('order', _order);
+      _addStyle('order', _order);
       return onReturn();
     },
     shrink: function shrink(_shrink) {
-      addStyle('flex-shrink', _shrink);
+      _addStyle('flex-shrink', _shrink);
       return onReturn();
     },
     grow: function grow(_grow) {
-      addStyle('flex-grow', _grow);
+      _addStyle('flex-grow', _grow);
       return onReturn();
     },
     wrap: function wrap(reverse) {
-      if (reverse) addStyle('flex-wrap', 'wrap-reverse');else addStyle('flex-wrap', 'wrap');
+      if (reverse) _addStyle('flex-wrap', 'wrap-reverse');else _addStyle('flex-wrap', 'wrap');
       return onReturn();
     },
     align: function align(_align) {
       if (_align == 'start' || _align == 'end') _align = 'flex-' + _align;
-      addStyle('align-self', _align);
+      _addStyle('align-self', _align);
       return onReturn();
     },
     items: function items(align) {
       if (align == 'start' || align == 'end') align = 'flex-' + align;
-      addStyle('align-items', align);
+      _addStyle('align-items', align);
       return onReturn();
     },
     content: function content(align) {
       if (align == 'start' || align == 'end') align = 'flex-' + align;
-      addStyle('align-content', align);
+      _addStyle('align-content', align);
       return onReturn();
     },
     start: function start() {
@@ -3720,6 +4027,11 @@ function $(tag, attributes, _children) {
     stretch: function stretch() {
       return chain.align('stretch');
     },
+
+    /**********************************
+    * Grid
+    **********************************/
+
     xs: function xs(size) {
       if (size) addClass('col-xs-' + size);
       _mediaSize = 'xs';
@@ -3740,14 +4052,11 @@ function $(tag, attributes, _children) {
       _mediaSize = 'lg';
       return onReturn();
     },
-    // offset: function(offset){
-    //   addClass('col-' + _mediaSize + '-offset-' + offset)
-    //   return onReturn()
-    // },
-    style: function style(attr, value) {
-      addStyle(attr, value);
-      return onReturn();
-    },
+
+    /**********************************
+    * Data
+    **********************************/
+
     'if': function _if(condition, vNode) {
       if (condition == true) _extend([vNode]);
       return onReturn();
@@ -3783,20 +4092,25 @@ function $(tag, attributes, _children) {
       var appending = data.map(function (item, i) {
         return fn(item, i).vNode();
       });
-      _children.push(appending);
+      addChild(appending);
       return onReturn();
     },
     mapToText: function mapToText(data, fn) {
       var text = data.map(function (item, i) {
         return fn(item, i);
       }).join('');
-      _children.push(text);
+      addChild(text);
       return onReturn();
     },
     toText: function toText(data) {
       if (!data) data = _data;
       return $().text(data.toString()).vNode();
     },
+
+    /**********************************
+    * Modifiers
+    **********************************/
+
     contain: function contain(containerTag) {
       tag = containerTag;
       _children = _data.map(function (child) {
@@ -3805,9 +4119,19 @@ function $(tag, attributes, _children) {
       });
       return onReturn();
     },
+    extend: function extend() {
+      var abstracts = parseArgs(arguments);
+      _extend(abstracts);
+      return onReturn();
+    },
+
+    /**********************************
+    * Ajax
+    **********************************/
+
     'default': function _default(vNodeChain) {
       _extend([vNodeChain]);
-      chain.render();
+      vDOM.reload();
       return onReturn();
     },
     'return': function _return(fn) {
@@ -3822,14 +4146,14 @@ function $(tag, attributes, _children) {
       _ajaxError = fn;
       return onReturn();
     },
-    extend: function extend() {
-      var abstracts = parseArgs(arguments);
-      _extend(abstracts);
-      return onReturn();
-    },
+
+    /**********************************
+    * DOM Operators
+    **********************************/
+
     removeStyles: function removeStyles() {
       if (domElement) domElement.removeAttribute('style');
-      attributes.style = {};
+      _attributes.style = {};
       return onReturn();
     },
     click: function click() {
@@ -3841,9 +4165,14 @@ function $(tag, attributes, _children) {
       domElement.innerHTML = '';
       if (domElement.parent) domElement.parent.removeChild(domElement);
     },
+
+    /**********************************
+    * Renderers
+    **********************************/
+
     vNode: function vNode() {
       if (_data) chain.contain();
-      var vNode = h(tag, attributes, _children);
+      var vNode = h(tag, _attributes, _children);
       if (_container) {
         _container.children.push(vNode);
         vNode = _container;
@@ -3855,6 +4184,11 @@ function $(tag, attributes, _children) {
       vNode.properties['onloadHook'] = onloadHook;
       return vNode;
     },
+
+    /**********************************
+    * Getters
+    **********************************/
+
     domNode: function domNode() {
       return domElement;
     },
@@ -3862,7 +4196,13 @@ function $(tag, attributes, _children) {
       return _children;
     },
     getAttributes: function getAttributes() {
-      return attributes;
+      return _attributes;
+    },
+    getStyles: function getStyles() {
+      return _attributes.style;
+    },
+    getChainState: function getChainState() {
+      return _chainState;
     },
     getTag: function getTag() {
       return tag;
@@ -3870,13 +4210,17 @@ function $(tag, attributes, _children) {
     data: function data() {
       return _data;
     },
+
+    /**********************************
+    * Render
+    **********************************/
+
     render: function render() {
       if (_data && !tag) chain.contain();
       var vNode = chain.vNode();
       vDOM.render(vNode);
       return onReturn();
-    },
-    type: 'vNodeChain'
+    }
   };
 
   return chain;
@@ -3916,7 +4260,7 @@ var $color = function $color(color) {
 };
 exports.$color = $color;
 
-},{"./flexboxGrid":43,"@fdaciuk/ajax":1,"color":8,"virtual-dom":17}],43:[function(require,module,exports){
+},{"./ajax":41,"./flexboxGrid":43,"color":7,"virtual-dom":16}],43:[function(require,module,exports){
 "use strict";
 
 var grid = ".container,.container-fluid{margin-right:auto;margin-left:auto}.container-fluid{padding-right:2rem;padding-left:2rem}.row{box-sizing:border-box;display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex;-webkit-box-flex:0;-webkit-flex:0 1 auto;-ms-flex:0 1 auto;flex:0 1 auto;-webkit-box-orient:horizontal;-webkit-box-direction:normal;-webkit-flex-direction:row;-ms-flex-direction:row;flex-direction:row;-webkit-flex-wrap:wrap;-ms-flex-wrap:wrap;flex-wrap:wrap;margin-right:-.5rem;margin-left:-.5rem}.row.reverse{-webkit-box-orient:horizontal;-webkit-box-direction:reverse;-webkit-flex-direction:row-reverse;-ms-flex-direction:row-reverse;flex-direction:row-reverse}.col.reverse{-webkit-box-orient:vertical;-webkit-box-direction:reverse;-webkit-flex-direction:column-reverse;-ms-flex-direction:column-reverse;flex-direction:column-reverse}.col-xs,.col-xs-1,.col-xs-10,.col-xs-11,.col-xs-12,.col-xs-2,.col-xs-3,.col-xs-4,.col-xs-5,.col-xs-6,.col-xs-7,.col-xs-8,.col-xs-9,.col-xs-offset-1,.col-xs-offset-10,.col-xs-offset-11,.col-xs-offset-12,.col-xs-offset-2,.col-xs-offset-3,.col-xs-offset-4,.col-xs-offset-5,.col-xs-offset-6,.col-xs-offset-7,.col-xs-offset-8,.col-xs-offset-9{box-sizing:border-box;-webkit-box-flex:0;-webkit-flex:0 0 auto;-ms-flex:0 0 auto;flex:0 0 auto;padding-right:.5rem;padding-left:.5rem}.col-xs{-webkit-box-flex:1;-webkit-flex-grow:1;-ms-flex-positive:1;flex-grow:1;-webkit-flex-basis:0;-ms-flex-preferred-size:0;flex-basis:0;max-width:100%}.col-xs-1{-webkit-flex-basis:8.333%;-ms-flex-preferred-size:8.333%;flex-basis:8.333%;max-width:8.333%}.col-xs-2{-webkit-flex-basis:16.667%;-ms-flex-preferred-size:16.667%;flex-basis:16.667%;max-width:16.667%}.col-xs-3{-webkit-flex-basis:25%;-ms-flex-preferred-size:25%;flex-basis:25%;max-width:25%}.col-xs-4{-webkit-flex-basis:33.333%;-ms-flex-preferred-size:33.333%;flex-basis:33.333%;max-width:33.333%}.col-xs-5{-webkit-flex-basis:41.667%;-ms-flex-preferred-size:41.667%;flex-basis:41.667%;max-width:41.667%}.col-xs-6{-webkit-flex-basis:50%;-ms-flex-preferred-size:50%;flex-basis:50%;max-width:50%}.col-xs-7{-webkit-flex-basis:58.333%;-ms-flex-preferred-size:58.333%;flex-basis:58.333%;max-width:58.333%}.col-xs-8{-webkit-flex-basis:66.667%;-ms-flex-preferred-size:66.667%;flex-basis:66.667%;max-width:66.667%}.col-xs-9{-webkit-flex-basis:75%;-ms-flex-preferred-size:75%;flex-basis:75%;max-width:75%}.col-xs-10{-webkit-flex-basis:83.333%;-ms-flex-preferred-size:83.333%;flex-basis:83.333%;max-width:83.333%}.col-xs-11{-webkit-flex-basis:91.667%;-ms-flex-preferred-size:91.667%;flex-basis:91.667%;max-width:91.667%}.col-xs-12{-webkit-flex-basis:100%;-ms-flex-preferred-size:100%;flex-basis:100%;max-width:100%}.col-xs-offset-1{margin-left:8.333%}.col-xs-offset-2{margin-left:16.667%}.col-xs-offset-3{margin-left:25%}.col-xs-offset-4{margin-left:33.333%}.col-xs-offset-5{margin-left:41.667%}.col-xs-offset-6{margin-left:50%}.col-xs-offset-7{margin-left:58.333%}.col-xs-offset-8{margin-left:66.667%}.col-xs-offset-9{margin-left:75%}.col-xs-offset-10{margin-left:83.333%}.col-xs-offset-11{margin-left:91.667%}.start-xs{-webkit-box-pack:start;-webkit-justify-content:flex-start;-ms-flex-pack:start;justify-content:flex-start;text-align:start}.center-xs{-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center}.end-xs{-webkit-box-pack:end;-webkit-justify-content:flex-end;-ms-flex-pack:end;justify-content:flex-end;text-align:end}.top-xs{-webkit-box-align:start;-webkit-align-items:flex-start;-ms-flex-align:start;align-items:flex-start}.middle-xs{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.bottom-xs{-webkit-box-align:end;-webkit-align-items:flex-end;-ms-flex-align:end;align-items:flex-end}.around-xs{-webkit-justify-content:space-around;-ms-flex-pack:distribute;justify-content:space-around}.between-xs{-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between}.first-xs{-webkit-box-ordinal-group:0;-webkit-order:-1;-ms-flex-order:-1;order:-1}.last-xs{-webkit-box-ordinal-group:2;-webkit-order:1;-ms-flex-order:1;order:1}@media only screen and (min-width:48em){.container{width:49rem}.col-sm,.col-sm-1,.col-sm-10,.col-sm-11,.col-sm-12,.col-sm-2,.col-sm-3,.col-sm-4,.col-sm-5,.col-sm-6,.col-sm-7,.col-sm-8,.col-sm-9,.col-sm-offset-1,.col-sm-offset-10,.col-sm-offset-11,.col-sm-offset-12,.col-sm-offset-2,.col-sm-offset-3,.col-sm-offset-4,.col-sm-offset-5,.col-sm-offset-6,.col-sm-offset-7,.col-sm-offset-8,.col-sm-offset-9{box-sizing:border-box;-webkit-box-flex:0;-webkit-flex:0 0 auto;-ms-flex:0 0 auto;flex:0 0 auto;padding-right:.5rem;padding-left:.5rem}.col-sm{-webkit-box-flex:1;-webkit-flex-grow:1;-ms-flex-positive:1;flex-grow:1;-webkit-flex-basis:0;-ms-flex-preferred-size:0;flex-basis:0;max-width:100%}.col-sm-1{-webkit-flex-basis:8.333%;-ms-flex-preferred-size:8.333%;flex-basis:8.333%;max-width:8.333%}.col-sm-2{-webkit-flex-basis:16.667%;-ms-flex-preferred-size:16.667%;flex-basis:16.667%;max-width:16.667%}.col-sm-3{-webkit-flex-basis:25%;-ms-flex-preferred-size:25%;flex-basis:25%;max-width:25%}.col-sm-4{-webkit-flex-basis:33.333%;-ms-flex-preferred-size:33.333%;flex-basis:33.333%;max-width:33.333%}.col-sm-5{-webkit-flex-basis:41.667%;-ms-flex-preferred-size:41.667%;flex-basis:41.667%;max-width:41.667%}.col-sm-6{-webkit-flex-basis:50%;-ms-flex-preferred-size:50%;flex-basis:50%;max-width:50%}.col-sm-7{-webkit-flex-basis:58.333%;-ms-flex-preferred-size:58.333%;flex-basis:58.333%;max-width:58.333%}.col-sm-8{-webkit-flex-basis:66.667%;-ms-flex-preferred-size:66.667%;flex-basis:66.667%;max-width:66.667%}.col-sm-9{-webkit-flex-basis:75%;-ms-flex-preferred-size:75%;flex-basis:75%;max-width:75%}.col-sm-10{-webkit-flex-basis:83.333%;-ms-flex-preferred-size:83.333%;flex-basis:83.333%;max-width:83.333%}.col-sm-11{-webkit-flex-basis:91.667%;-ms-flex-preferred-size:91.667%;flex-basis:91.667%;max-width:91.667%}.col-sm-12{-webkit-flex-basis:100%;-ms-flex-preferred-size:100%;flex-basis:100%;max-width:100%}.col-sm-offset-1{margin-left:8.333%}.col-sm-offset-2{margin-left:16.667%}.col-sm-offset-3{margin-left:25%}.col-sm-offset-4{margin-left:33.333%}.col-sm-offset-5{margin-left:41.667%}.col-sm-offset-6{margin-left:50%}.col-sm-offset-7{margin-left:58.333%}.col-sm-offset-8{margin-left:66.667%}.col-sm-offset-9{margin-left:75%}.col-sm-offset-10{margin-left:83.333%}.col-sm-offset-11{margin-left:91.667%}.start-sm{-webkit-box-pack:start;-webkit-justify-content:flex-start;-ms-flex-pack:start;justify-content:flex-start;text-align:start}.center-sm{-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center}.end-sm{-webkit-box-pack:end;-webkit-justify-content:flex-end;-ms-flex-pack:end;justify-content:flex-end;text-align:end}.top-sm{-webkit-box-align:start;-webkit-align-items:flex-start;-ms-flex-align:start;align-items:flex-start}.middle-sm{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.bottom-sm{-webkit-box-align:end;-webkit-align-items:flex-end;-ms-flex-align:end;align-items:flex-end}.around-sm{-webkit-justify-content:space-around;-ms-flex-pack:distribute;justify-content:space-around}.between-sm{-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between}.first-sm{-webkit-box-ordinal-group:0;-webkit-order:-1;-ms-flex-order:-1;order:-1}.last-sm{-webkit-box-ordinal-group:2;-webkit-order:1;-ms-flex-order:1;order:1}}@media only screen and (min-width:64em){.container{width:65rem}.col-md,.col-md-1,.col-md-10,.col-md-11,.col-md-12,.col-md-2,.col-md-3,.col-md-4,.col-md-5,.col-md-6,.col-md-7,.col-md-8,.col-md-9,.col-md-offset-1,.col-md-offset-10,.col-md-offset-11,.col-md-offset-12,.col-md-offset-2,.col-md-offset-3,.col-md-offset-4,.col-md-offset-5,.col-md-offset-6,.col-md-offset-7,.col-md-offset-8,.col-md-offset-9{box-sizing:border-box;-webkit-box-flex:0;-webkit-flex:0 0 auto;-ms-flex:0 0 auto;flex:0 0 auto;padding-right:.5rem;padding-left:.5rem}.col-md{-webkit-box-flex:1;-webkit-flex-grow:1;-ms-flex-positive:1;flex-grow:1;-webkit-flex-basis:0;-ms-flex-preferred-size:0;flex-basis:0;max-width:100%}.col-md-1{-webkit-flex-basis:8.333%;-ms-flex-preferred-size:8.333%;flex-basis:8.333%;max-width:8.333%}.col-md-2{-webkit-flex-basis:16.667%;-ms-flex-preferred-size:16.667%;flex-basis:16.667%;max-width:16.667%}.col-md-3{-webkit-flex-basis:25%;-ms-flex-preferred-size:25%;flex-basis:25%;max-width:25%}.col-md-4{-webkit-flex-basis:33.333%;-ms-flex-preferred-size:33.333%;flex-basis:33.333%;max-width:33.333%}.col-md-5{-webkit-flex-basis:41.667%;-ms-flex-preferred-size:41.667%;flex-basis:41.667%;max-width:41.667%}.col-md-6{-webkit-flex-basis:50%;-ms-flex-preferred-size:50%;flex-basis:50%;max-width:50%}.col-md-7{-webkit-flex-basis:58.333%;-ms-flex-preferred-size:58.333%;flex-basis:58.333%;max-width:58.333%}.col-md-8{-webkit-flex-basis:66.667%;-ms-flex-preferred-size:66.667%;flex-basis:66.667%;max-width:66.667%}.col-md-9{-webkit-flex-basis:75%;-ms-flex-preferred-size:75%;flex-basis:75%;max-width:75%}.col-md-10{-webkit-flex-basis:83.333%;-ms-flex-preferred-size:83.333%;flex-basis:83.333%;max-width:83.333%}.col-md-11{-webkit-flex-basis:91.667%;-ms-flex-preferred-size:91.667%;flex-basis:91.667%;max-width:91.667%}.col-md-12{-webkit-flex-basis:100%;-ms-flex-preferred-size:100%;flex-basis:100%;max-width:100%}.col-md-offset-1{margin-left:8.333%}.col-md-offset-2{margin-left:16.667%}.col-md-offset-3{margin-left:25%}.col-md-offset-4{margin-left:33.333%}.col-md-offset-5{margin-left:41.667%}.col-md-offset-6{margin-left:50%}.col-md-offset-7{margin-left:58.333%}.col-md-offset-8{margin-left:66.667%}.col-md-offset-9{margin-left:75%}.col-md-offset-10{margin-left:83.333%}.col-md-offset-11{margin-left:91.667%}.start-md{-webkit-box-pack:start;-webkit-justify-content:flex-start;-ms-flex-pack:start;justify-content:flex-start;text-align:start}.center-md{-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center}.end-md{-webkit-box-pack:end;-webkit-justify-content:flex-end;-ms-flex-pack:end;justify-content:flex-end;text-align:end}.top-md{-webkit-box-align:start;-webkit-align-items:flex-start;-ms-flex-align:start;align-items:flex-start}.middle-md{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.bottom-md{-webkit-box-align:end;-webkit-align-items:flex-end;-ms-flex-align:end;align-items:flex-end}.around-md{-webkit-justify-content:space-around;-ms-flex-pack:distribute;justify-content:space-around}.between-md{-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between}.first-md{-webkit-box-ordinal-group:0;-webkit-order:-1;-ms-flex-order:-1;order:-1}.last-md{-webkit-box-ordinal-group:2;-webkit-order:1;-ms-flex-order:1;order:1}}@media only screen and (min-width:75em){.container{width:76rem}.col-lg,.col-lg-1,.col-lg-10,.col-lg-11,.col-lg-12,.col-lg-2,.col-lg-3,.col-lg-4,.col-lg-5,.col-lg-6,.col-lg-7,.col-lg-8,.col-lg-9,.col-lg-offset-1,.col-lg-offset-10,.col-lg-offset-11,.col-lg-offset-12,.col-lg-offset-2,.col-lg-offset-3,.col-lg-offset-4,.col-lg-offset-5,.col-lg-offset-6,.col-lg-offset-7,.col-lg-offset-8,.col-lg-offset-9{box-sizing:border-box;-webkit-box-flex:0;-webkit-flex:0 0 auto;-ms-flex:0 0 auto;flex:0 0 auto;padding-right:.5rem;padding-left:.5rem}.col-lg{-webkit-box-flex:1;-webkit-flex-grow:1;-ms-flex-positive:1;flex-grow:1;-webkit-flex-basis:0;-ms-flex-preferred-size:0;flex-basis:0;max-width:100%}.col-lg-1{-webkit-flex-basis:8.333%;-ms-flex-preferred-size:8.333%;flex-basis:8.333%;max-width:8.333%}.col-lg-2{-webkit-flex-basis:16.667%;-ms-flex-preferred-size:16.667%;flex-basis:16.667%;max-width:16.667%}.col-lg-3{-webkit-flex-basis:25%;-ms-flex-preferred-size:25%;flex-basis:25%;max-width:25%}.col-lg-4{-webkit-flex-basis:33.333%;-ms-flex-preferred-size:33.333%;flex-basis:33.333%;max-width:33.333%}.col-lg-5{-webkit-flex-basis:41.667%;-ms-flex-preferred-size:41.667%;flex-basis:41.667%;max-width:41.667%}.col-lg-6{-webkit-flex-basis:50%;-ms-flex-preferred-size:50%;flex-basis:50%;max-width:50%}.col-lg-7{-webkit-flex-basis:58.333%;-ms-flex-preferred-size:58.333%;flex-basis:58.333%;max-width:58.333%}.col-lg-8{-webkit-flex-basis:66.667%;-ms-flex-preferred-size:66.667%;flex-basis:66.667%;max-width:66.667%}.col-lg-9{-webkit-flex-basis:75%;-ms-flex-preferred-size:75%;flex-basis:75%;max-width:75%}.col-lg-10{-webkit-flex-basis:83.333%;-ms-flex-preferred-size:83.333%;flex-basis:83.333%;max-width:83.333%}.col-lg-11{-webkit-flex-basis:91.667%;-ms-flex-preferred-size:91.667%;flex-basis:91.667%;max-width:91.667%}.col-lg-12{-webkit-flex-basis:100%;-ms-flex-preferred-size:100%;flex-basis:100%;max-width:100%}.col-lg-offset-1{margin-left:8.333%}.col-lg-offset-2{margin-left:16.667%}.col-lg-offset-3{margin-left:25%}.col-lg-offset-4{margin-left:33.333%}.col-lg-offset-5{margin-left:41.667%}.col-lg-offset-6{margin-left:50%}.col-lg-offset-7{margin-left:58.333%}.col-lg-offset-8{margin-left:66.667%}.col-lg-offset-9{margin-left:75%}.col-lg-offset-10{margin-left:83.333%}.col-lg-offset-11{margin-left:91.667%}.start-lg{-webkit-box-pack:start;-webkit-justify-content:flex-start;-ms-flex-pack:start;justify-content:flex-start;text-align:start}.center-lg{-webkit-box-pack:center;-webkit-justify-content:center;-ms-flex-pack:center;justify-content:center;text-align:center}.end-lg{-webkit-box-pack:end;-webkit-justify-content:flex-end;-ms-flex-pack:end;justify-content:flex-end;text-align:end}.top-lg{-webkit-box-align:start;-webkit-align-items:flex-start;-ms-flex-align:start;align-items:flex-start}.middle-lg{-webkit-box-align:center;-webkit-align-items:center;-ms-flex-align:center;align-items:center}.bottom-lg{-webkit-box-align:end;-webkit-align-items:flex-end;-ms-flex-align:end;align-items:flex-end}.around-lg{-webkit-justify-content:space-around;-ms-flex-pack:distribute;justify-content:space-around}.between-lg{-webkit-box-pack:justify;-webkit-justify-content:space-between;-ms-flex-pack:justify;justify-content:space-between}.first-lg{-webkit-box-ordinal-group:0;-webkit-order:-1;-ms-flex-order:-1;order:-1}.last-lg{-webkit-box-ordinal-group:2;-webkit-order:1;-ms-flex-order:1;order:1}}";

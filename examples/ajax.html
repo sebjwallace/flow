@@ -14,17 +14,19 @@
 	<script>
 		
 	var $ = Flow.$
+	var $ajax = Flow.$ajax
+	var $action = Flow.$action
 
 	var address = 'http://jsonplaceholder.typicode.com/posts/1'
-	loadAjax(address)
+	// loadAjax(address)
 
 	function loadAjax(url){
-			$({GET: url})
+			$('GET', url)
 			.default(
-				$().text('loading data...')
+				$('div').text('loading data...')
 			)
 			.success(function(data){
-				return $()
+				return $('div')
 					.background(200,220,250)
 					.padding(20)
 					.justify('space-around')
@@ -53,7 +55,46 @@
 						})
 					)
 			})
+			.render()
 	}
+
+
+	function renderJSON(data){
+
+		if(!data)
+			return $('div')
+				.text('loading data...')
+
+		return $('div')
+			.background(200,220,250)
+			.padding(20)
+			.justify('space-around')
+			.items('baseline')
+			.columns(
+				$('h1').text(data.title),
+				$('p').text(data.body),
+				$('button')
+					.text('retry but with error')
+					.onclick(function(){
+						getData('http://nosuchurl')
+					})
+			)
+	}
+
+
+	$action.pull('@loadedData', function(data){
+		renderJSON(data).render()
+	})
+
+	function getData(url){
+		$ajax().get(url)
+		.always(function(data){
+			$action.push('@loadedData',data)()
+		})
+	}
+
+	renderJSON().render()
+	getData(address)
 
 	</script>
 

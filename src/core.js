@@ -2,25 +2,31 @@
 var vdom = require('virtual-dom')
 var h = vdom.h;
 
-var ajax = require('@fdaciuk/ajax')
+var ajax = require('./ajax')
+export var $ajax = ajax
 
 var grid = require('./flexboxGrid')
 grid.mount()
 
 function DOM(){
     
-  var tree = vdom.h('#root','');
-  var rootNode = vdom.create(tree);
-  document.body.appendChild(rootNode);
+  var _tree = vdom.h('#root','')
+  var _rootNode = vdom.create(_tree)
+  document.body.appendChild(_rootNode)
 
   function update(newTree){
-    var patches = vdom.diff(tree, newTree);
-    rootNode = vdom.patch(rootNode, patches);
-    tree = newTree;
+    var patches = vdom.diff(_tree, newTree)
+    _rootNode = vdom.patch(_rootNode, patches)
+    _tree = newTree
   }
   return{
-    render: function(tree){
-      update(tree);
+    render: function(newTree){
+      update(newTree)
+    },
+    reload: function(){
+      document.body.removeChild(_rootNode)
+      _rootNode = vdom.create(_tree)
+      document.body.appendChild(_rootNode)
     }
   }; 
 }
@@ -51,6 +57,10 @@ function getInputType(input){
   if(input.window)
     if(input.window = window.window)
       return 'NULL'
+  if(typeof input == 'string'){
+    if(input == 'GET' || input == 'POST' || input == 'JSON')
+      return 'HTTP'
+  }
   if(typeof input == 'string')
       return 'TAG'
   if(input.type)
@@ -59,38 +69,98 @@ function getInputType(input){
   if(Array.isArray(input))
     return 'DATA'
   if(typeof input == 'object'){
-    if(input.GET){
-      return 'HTTP'
-    }
-    else if(Object.keys(input).length > 0)
+    if(Object.keys(input).length > 0)
       return 'DATA'
   }
 }
 
 export function $(tag,attributes,children){
 
+    /**********************************
+    * Private Methods
+    **********************************/
+
     function extend(abstracts){
       abstracts.forEach(function(abstract){
         var vNode = abstract.vNode()
         for(var prop in vNode.properties){
           if(prop != 'style')
-            attributes[prop] = vNode.properties[prop]
+            _attributes[prop] = vNode.properties[prop]
         }
         var styles = vNode.properties.style
         if(styles){
-          if(!attributes.style)
-            attributes.style = {}
+          if(!_attributes.style)
+            _attributes.style = {}
           for(var style in styles)
-            attributes['style'][style] = styles[style]
+            _attributes['style'][style] = styles[style]
         }
         var abstractChildren = abstract.getChildren()
         for(var child in abstractChildren)
-          children.push(abstractChildren[child])
+          _children.push(abstractChildren[child])
       })
     }
 
-    attributes = attributes || {}
-    children = children || []
+    function addAttribute(attr,value){
+      _attributes[attr] = value
+    }
+
+    function addStyle(attr,value){
+      if(!_attributes.style)
+        _attributes.style = {}
+      _attributes.style[attr] = value
+    }
+
+    function addClass(name){
+      if(!_attributes.className)
+        _attributes.className = ''
+      _attributes.className += name + ' '
+    }
+
+    function addChild(child){
+      _children.push(child)
+    }
+
+    function parseRGBA(rgba){
+      rgba = parseArgs(rgba)
+      if(rgba.length == 3)
+        return 'rgb(' + rgba.join(',') + ')'
+      else if(rgba.length == 4)
+        return 'rgba(' + rgba.join(',') + ')'
+    }
+
+    function parseColor(color){
+      if(typeof color ==  'object')
+          color = color.rgbString()
+        return color
+      return color
+    }
+
+    function createHook(callback){
+      var Hook = function(){}
+      Hook.prototype.hook = function(node){
+        callback(node)
+      }
+      return new Hook()
+    }
+
+    function replaceDomNode(vNodeChain){
+      var vNode = vNodeChain.vNode()
+      var el = vdom.create(vNode)
+      domElement.innerHTML = ''
+      domElement.removeAttribute('style')
+      domElement.appendChild(el)
+    }
+
+    function onReturn(){
+      return chain
+    }
+
+    /**********************************
+    * Private State
+    **********************************/
+
+    var _attributes = attributes || {}
+    var _children = children || []
     var domElement = null
     var _container = null
     var onload = function(){}
@@ -103,170 +173,239 @@ export function $(tag,attributes,children){
     var _ajaxSuccess = null
     var _ajaxError = null
 
+    var _chainState = null
+
+    /**********************************
+    * Initialize State
+    **********************************/
+
     if(getInputType(tag) == 'DATA'){
       _data = tag
       tag = null
+      _chainState = 'DATA'
     }
     else if(getInputType(tag) == 'CHAIN'){
       tag = 'DIV'
       var abstracts = parseArgs(arguments)
       extend(abstracts)
+      _chainState = 'ELEMENT'
     }
     else if(getInputType(tag) == 'NULL'){
       tag = 'DIV'
+      _chainState = 'ERROR'
     }
     else if(getInputType(tag) == 'HTTP'){
-      function proceed(vNodeChain){
-        attributes = {}
-        children = []
-        extend([vNodeChain])
-        chain.render()
+      var method = tag.toLowerCase()
+      var url = attributes
+      var headers = children || {}
+      _attributes = {}
+      _children = []
+
+      if(method == 'json'){
+        ajax().json(url,function(data){
+          replaceDomNode(_ajaxSuccess(data))
+        })
       }
-      ajax().get(tag.GET)
-        .always(function(res,xhr){
-          if(_ajaxCallback)
-            proceed(_ajaxCallback(res,xhr))
-        })
-        .then(function(res,xhr){
-          if(_ajaxSuccess)
-            proceed(_ajaxSuccess(res,xhr))
-        })
-        .catch(function(res,xhr){
-          if(_ajaxError)
-            proceed(_ajaxError(res,xhr))
-        })
+      else{
+        ajax(headers)[method](url)
+          .always(function(res,xhr){
+            if(_ajaxCallback){
+              replaceDomNode(_ajaxCallback(res,xhr))
+              _chainState = 'DATA'
+            }
+          })
+          .then(function(res,xhr){
+            if(_ajaxSuccess){
+              replaceDomNode(_ajaxSuccess(res,xhr))
+              _chainState = 'DATA'
+            }
+          })
+          .catch(function(res,xhr){
+            if(_ajaxError){
+              replaceDomNode(_ajaxError(res,xhr))
+              _chainState = 'DATA'
+            }
+          })
+      }
       tag = null
+      _chainState = 'AJAX'
     }
 
-    function addStyle(attr,value){
-    	if(!attributes.style)
-    		attributes.style = {}
-    	attributes.style[attr] = value
-    }
-
-    function addClass(name){
-      if(!attributes.className)
-        attributes.className = ''
-      attributes.className += name + ' '
-    }
-
-    function parseRGBA(rgba){
-      rgba = parseArgs(rgba)
-      if(rgba.length == 3)
-        return 'rgb(' + rgba.join(',') + ')'
-      else if(rgba.length == 4)
-        return 'rgba(' + rgba.join(',') + ')'
-    }
-
-    function parseColor(color){
-    	if(typeof color ==  'object')
-      		color = color.rgbString()
-      	return color
-      return color
-    }
-
-    function createHook(callback){
-    	var Hook = function(){}
-    	Hook.prototype.hook = function(node){
-    		callback(node)
-    	}
-    	return new Hook()
-    }
-
-    function onReturn(){
-    	return chain
-    }
+    /*================================
+    * CHAIN or Public Methods
+    ================================*/
     
     var chain = {
+
+      type: 'vNodeChain',
+
       pipe: function(fn){
         _data = fn(_data)
         return onReturn()
       },
+
+      /**********************************
+      * Attributes
+      **********************************/
+
       attr: function(attr,val){
-        attributes[attr] = val
+        addAttribute(attr,val)
         return onReturn()
       },
-      attribute: function(){
-        attributes[attr] = val
+      attribute: function(attr,val){
+        addAttribute(attr,val)
         return onReturn()
       },
-      setAttribute: function(){
-        attributes[attr] = val
+      addAttribute: function(attr,val){
+        addAttribute(attr,val)
         return onReturn()
       },
       id: function(id){
-        attributes['id'] = id
+        addAttribute('id',id)
         return onReturn()
       },
       class: function(className){
         addClass(className)
         return onReturn()
       },
-      children: function(){
-      	var args = parseArgs(arguments)
-      	args = args.map(arg => arg.vNode())
-        children.push(args)
-        return onReturn()
-      },
       src: function(path){
-        attributes.src = path
+        addAttribute('src',path)
         return onReturn()
       },
       href: function(path){
-        attributes.href = path
+        addAttribute('href',path)
         return onReturn()
       },
+      placeholder: function(text){
+        addAttribute('placeholder',text)
+        return onReturn()
+      },
+      value: function(value){
+        addAttribute('value',value)
+        return onReturn()
+      },
+
+      /**********************************
+      * Children
+      **********************************/
+
       text: function(text){
-      	children.push(text)
+        addChild(text)
       	return onReturn()
       },
+      children: function(){
+        var args = parseArgs(arguments)
+        args = args.map(arg => arg.vNode())
+        addChild(args)
+        return onReturn()
+      },
+      columns: function(){
+        addStyle('display','flex')
+        addStyle('flex-direction','row')
+        if(arguments)
+          parseArgs(arguments).forEach(function(child){
+            addChild(child.vNode())
+          })
+        return onReturn()
+      },
+      rows: function(){
+        addStyle('display','flex')
+        addStyle('flex-direction','column')
+        if(arguments)
+          parseArgs(arguments).forEach(function(child){
+            addChild(child.vNode())
+          })
+        return onReturn()
+      },
+
+      /**********************************
+      * Events
+      **********************************/
+
       event: function(event,fn,params){
       	if(typeof fn == 'string'){
-      		attributes[event] = function(){
+      		addAttribute(event,function(){
       			$action.push(fn,params).call()
-      		}
+      		})
       		return onReturn()
       	}
         if(getInputType(fn) == 'CHAIN'){
-          attributes[event] = function(){
-              var styles = fn.vNode().properties.style
-              for(var style in styles)
-                domElement.style[style] = styles[style]
-            }
-            return onReturn()
+          addAttribute(event,function(){
+            var styles = fn.vNode().properties.style
+            for(var style in styles)
+              domElement.style[style] = styles[style]
+          })
+          return onReturn()
         }
-      	attributes[event] = fn
+      	addAttribute(event,fn)
       	return onReturn()
       },
-      action: function(handler,vNode){
-      	$action.pull(handler,function(){
-          if(typeof vNode == 'function'){
-            vNode = vNode.apply(this,arguments)
-          }
-      		var styles = vNode.vNode().properties.style
-      		for(var style in styles)
-      			domElement.style[style] = styles[style]
-      	})
-      	return onReturn()
+      onchange: function(fn,params){
+        chain.event('onchange',fn,params)
+        return onReturn()
       },
       onclick: function(fn,params){
         chain.event('onclick',fn,params)
+        return onReturn()
+      },
+      ondbclick: function(fn,params){
+        chain.event('ondbclick',fn,params)
+        return onReturn()
+      },
+      onmouseenter: function(fn,params){
+        chain.event('onmouseenter',fn,params)
+        return onReturn()
+      },
+      onmouseleave: function(fn,params){
+        chain.event('onmouseleave',fn,params)
         return onReturn()
       },
       onkeypress: function(fn,params){
         chain.event('onkeypress',fn,params)
         return onReturn()
       },
-      onload: function(fn){
-      	onload = fn
-      	return onReturn()
-      },
-      placeholder: function(text){
-        attributes.placeholder = text
+      onkeydown: function(fn,params){
+        chain.event('onkeydown',fn,params)
         return onReturn()
       },
-      value: function(value){
-        attributes.value = value
+      onkeyup: function(fn,params){
+        chain.event('onkeyup',fn,params)
+        return onReturn()
+      },
+      onfocus: function(fn,params){
+        chain.event('onfocus',fn,params)
+        return onReturn()
+      },
+      onblur: function(fn,params){
+        chain.event('onblur',fn,params)
+        return onReturn()
+      },
+      onload: function(fn){
+        onload = fn
+        return onReturn()
+      },
+      action: function(handler,vNode){
+        $action.pull(handler,function(){
+          if(typeof vNode == 'function'){
+            vNode = vNode.apply(this,arguments)
+          }
+          var styles = vNode.vNode().properties.style
+          for(var style in styles)
+            domElement.style[style] = styles[style]
+        })
+        return onReturn()
+      },
+
+      /**********************************
+      * Styles
+      **********************************/
+
+      style: function(attr,value){
+      	addStyle(attr,value)
+      	return onReturn()
+      },
+      addStyle: function(attr,value){
+        addStyle(attr,value)
         return onReturn()
       },
       position: function(position){
@@ -288,20 +427,20 @@ export function $(tag,attributes,children){
       color: function(color){
         if(arguments.length > 2)
           color = parseRGBA(arguments)
-      	color = parseColor(color)
-      	addStyle('color', color)
-      	return onReturn()
+        color = parseColor(color)
+        addStyle('color', color)
+        return onReturn()
       },
       background: function(color){
         if(arguments.length > 2)
           color = parseRGBA(arguments)
-      	color = parseColor(color)
-      	addStyle('background-color', color)
-      	return onReturn()
+        color = parseColor(color)
+        addStyle('background-color', color)
+        return onReturn()
       },
       opacity(value){
-      	addStyle('opacity',value)
-      	return onReturn()
+        addStyle('opacity',value)
+        return onReturn()
       },
       height: function(height,unit){
         if(unit)
@@ -320,18 +459,18 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       size: function(){
-      	var sizes = parseUnits(arguments)
-      	addStyle('height',sizes[0])
-      	if(sizes.length > 1)
-	      	addStyle('width',sizes[1])
-      	return onReturn()
+        var sizes = parseUnits(arguments)
+        addStyle('height',sizes[0])
+        if(sizes.length > 1)
+          addStyle('width',sizes[1])
+        return onReturn()
       },
       padding: function(){
-      	var padding = parseUnits(arguments).join('')
-      	addStyle('padding',padding)
-      	return onReturn()
+        var padding = parseUnits(arguments).join('')
+        addStyle('padding',padding)
+        return onReturn()
       },
-      margin: function(){
+      margin: function(attr,value){
         var margin = parseUnits(arguments).join('')
         addStyle('margin',margin)
         return onReturn()
@@ -342,16 +481,21 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       border: function(size,style,color){
-      	addStyle('border', size + 'px ' + style + ' ' + parseColor(color))
-      	return onReturn()
+        addStyle('border', size + 'px ' + style + ' ' + parseColor(color))
+        return onReturn()
       },
       font: function(attr,value,unit){
-        unit = '' || unit
-        addStyle('font-'+attr,value+unit)
+        unit = unit || ' '
+        addStyle('font-' + attr, value + unit)
         return onReturn()
       },
       textAlign: function(align){
         addStyle('text-align',align)
+        return onReturn()
+      },
+      letter: function(attr,val,unit){
+        unit = unit || 'em'
+        addStyle('letter-' + attr, val + unit)
         return onReturn()
       },
       letterSpacing: function(space){
@@ -359,34 +503,38 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       transition: function(styles,duration){
-      	if(!duration){
-      		duration = styles
-      		styles = 'all'
-      	}
-      	addStyle('transition', styles + ' ' + duration + 's')
-      	return onReturn()
-      },
-      flex: function(){
-        addStyle('display','flex')
-        addStyle('flex-wrap','wrap')
+        if(!duration){
+          duration = styles
+          styles = 'all'
+        }
+        addStyle('transition', styles + ' ' + duration + 's')
         return onReturn()
       },
-      columns: function(){
-        addStyle('display','flex')
-        addStyle('flex-direction','row')
-        if(arguments)
-          parseArgs(arguments).forEach(function(child){
-            children.push(child.vNode())
-          })
+      uppercase: function(){
+        addStyle('text-transform','uppercase')
         return onReturn()
       },
-      rows: function(){
-        chain.flex()
-        addStyle('flex-direction','column')
-        if(arguments)
-          parseArgs(arguments).forEach(function(child){
-            children.push(child.vNode())
-          })
+      overflow: function(val){
+        addStyle('overflow',val)
+        return onReturn()
+      },
+      hover: function(vNodeChain){
+        chain.event('onmouseleave', $(chain))
+        chain.event('onmouseenter', vNodeChain)
+        return onReturn()
+      },
+      max: function(attr,value,unit){
+        unit = unit || 'px'
+        addStyle('max-' + attr, value + unit)
+        return onReturn()
+      },
+
+      /**********************************
+      * Flex
+      **********************************/
+
+      flex: function(value){
+        addStyle('flex',value)
         return onReturn()
       },
       centered: function(){
@@ -454,6 +602,11 @@ export function $(tag,attributes,children){
       stretch: function(){
         return chain.align('stretch')
       },
+
+      /**********************************
+      * Grid
+      **********************************/
+
       xs: function(size){
         if(size)
           addClass('col-xs-' + size)
@@ -478,14 +631,11 @@ export function $(tag,attributes,children){
         _mediaSize = 'lg'
         return onReturn()
       },
-      // offset: function(offset){
-      //   addClass('col-' + _mediaSize + '-offset-' + offset)
-      //   return onReturn()
-      // },
-      style: function(attr,value){
-      	addStyle(attr,value)
-      	return onReturn()
-      },
+
+      /**********************************
+      * Data
+      **********************************/
+
       if: function(condition,vNode){
         if(condition == true)
           extend([vNode])
@@ -523,14 +673,14 @@ export function $(tag,attributes,children){
         var appending = data.map(function(item,i){
           return fn(item,i).vNode()
         })
-        children.push(appending)
+        addChild(appending)
         return onReturn()
       },
       mapToText: function(data,fn){
         var text = data.map(function(item,i){
           return fn(item,i)
         }).join('')
-        children.push(text)
+        addChild(text)
         return onReturn()
       },
       toText: function(data){
@@ -538,18 +688,33 @@ export function $(tag,attributes,children){
           data = _data
         return $().text(data.toString()).vNode()
       },
+
+      /**********************************
+      * Modifiers
+      **********************************/
+
       contain: function(containerTag){
         tag = containerTag
-        children = _data.map(function(child){
+        _children = _data.map(function(child){
           if(getInputType(child) != 'CHAIN')
             return chain.toText(child)
           return child.vNode()
         })
         return onReturn()
       },
+      extend: function(){
+        var abstracts = parseArgs(arguments)
+        extend(abstracts)
+      	return onReturn()
+      },
+
+      /**********************************
+      * Ajax
+      **********************************/
+
       default: function(vNodeChain){
         extend([vNodeChain])
-        chain.render()
+        vDOM.reload()
         return onReturn()
       },
       return: function(fn){
@@ -564,15 +729,15 @@ export function $(tag,attributes,children){
         _ajaxError = fn
         return onReturn()
       },
-      extend: function(){
-        var abstracts = parseArgs(arguments)
-        extend(abstracts)
-      	return onReturn()
-      },
+
+      /**********************************
+      * DOM Operators
+      **********************************/
+
       removeStyles: function(){
         if(domElement)
           domElement.removeAttribute('style')
-        attributes.style = {}
+        _attributes.style = {}
         return onReturn()
       },
       click: function(){
@@ -585,10 +750,15 @@ export function $(tag,attributes,children){
         if(domElement.parent)
           domElement.parent.removeChild(domElement)
       },
+
+      /**********************************
+      * Renderers
+      **********************************/
+
       vNode: function(){
         if(_data)
           chain.contain()
-        var vNode = h(tag,attributes,children)
+        var vNode = h(tag,_attributes,_children)
         if(_container){
           _container.children.push(vNode)
           vNode = _container
@@ -600,14 +770,25 @@ export function $(tag,attributes,children){
       	vNode.properties['onloadHook'] = onloadHook
       	return vNode
       },
+
+      /**********************************
+      * Getters
+      **********************************/
+
       domNode: function(){
         return domElement
       },
       getChildren: function(){
-      	return children
+      	return _children
       },
       getAttributes: function(){
-      	return attributes
+      	return _attributes
+      },
+      getStyles: function(){
+        return _attributes.style
+      },
+      getChainState: function(){
+        return _chainState
       },
       getTag: function(){
         return tag
@@ -615,14 +796,18 @@ export function $(tag,attributes,children){
       data: function(){
         return _data
       },
+
+      /**********************************
+      * Render
+      **********************************/
+
       render: function(){
         if(_data && !tag)
           chain.contain()
       	var vNode = chain.vNode()
       	vDOM.render(vNode)
       	return onReturn()
-      },
-      type: 'vNodeChain'
+      }
     }
     
     return chain

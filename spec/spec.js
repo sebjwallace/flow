@@ -10,7 +10,7 @@ describe('flow', function(){
 	});
 
 	it("will set the tag to 'div' by default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.vNode()
 		expect(vNode.tagName).toEqual('DIV');
 	});
@@ -56,7 +56,7 @@ describe('flow', function(){
 	});
 
 	it("can add VirtualText to the node", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.text('content text')
   			.vNode()
 		expect(vNode.children[0].type).toEqual("VirtualText");
@@ -64,89 +64,89 @@ describe('flow', function(){
 	});
 
 	it("can add styles to the node", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.style('color','blue')
   			.vNode()
 		expect(vNode.properties.style.color).toEqual("blue");
 	});
 
 	it("can add height styles with px as default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.height(50)
   			.vNode()
 		expect(vNode.properties.style.height).toEqual("50px");
 
-		var vNode = $()
+		var vNode = $('div')
   			.height(50,'%')
   			.vNode()
 		expect(vNode.properties.style.height).toEqual("50%");
 
-		var vNode = $()
+		var vNode = $('div')
   			.height('50em')
   			.vNode()
 		expect(vNode.properties.style.height).toEqual("50em");
 	});
 
 	it("can add width styles with px as default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.width(50)
   			.vNode()
 		expect(vNode.properties.style.width).toEqual("50px");
 
-		var vNode = $()
+		var vNode = $('div')
   			.width(50,'%')
   			.vNode()
 		expect(vNode.properties.style.width).toEqual("50%");
 
-		var vNode = $()
+		var vNode = $('div')
   			.width('50em')
   			.vNode()
 		expect(vNode.properties.style.width).toEqual("50em");
 	});
 
 	it("can add color styles", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.color('blue')
   			.vNode()
 		expect(vNode.properties.style.color).toEqual("blue");
 	});
 
 	it("can add background-color styles", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.background('blue')
   			.vNode()
 		expect(vNode.properties.style['background-color']).toEqual("blue");
 	});
 
 	it("can add colors using rgb in arguments", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.color(10,50,120)
   			.vNode()
 		expect(vNode.properties.style.color).toEqual('rgb(10,50,120)');
 	});
 
 	it("can add colors using rgba in arguments", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.color(10,50,120,0.8)
   			.vNode()
 		expect(vNode.properties.style.color).toEqual('rgba(10,50,120,0.8)');
 	});
 
 	it("can add height size style using 'size' method with px by default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.size(10)
   			.vNode()
 		expect(vNode.properties.style.height.replace(' ','')).toEqual('10px');
 	});
 
 	it("can add height and width size style with different units: %, em, etc", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.size(10,20,'%')
   			.vNode()
 		expect(vNode.properties.style.height.replace(' ','')).toEqual('10%');
 		expect(vNode.properties.style.width.replace(' ','')).toEqual('20%');
 
-		var vNode = $()
+		var vNode = $('div')
   			.size(10,20,'em')
   			.vNode()
 		expect(vNode.properties.style.height.replace(' ','')).toEqual('10em');
@@ -154,80 +154,104 @@ describe('flow', function(){
 	});
 
 	it("can add padding style with px as default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.padding(10)
   			.vNode()
 		expect(vNode.properties.style.padding.replace(' ','')).toEqual('10px');
 	});
 
+	it("can add font weight", function() {
+  		var vNode = $('div')
+  			.font('weight',500)
+  			.vNode()
+		expect(vNode.properties.style['font-weight']).toEqual('500 ');
+	});
+
+	it("can add font size", function() {
+  		var vNode = $('div')
+  			.font('size',2,'em')
+  			.vNode()
+		expect(vNode.properties.style['font-size']).toEqual('2em');
+	});
+
 	it("can add padding style with different units: %, em, etc", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.padding(10,'%')
   			.vNode()
 		expect(vNode.properties.style.padding.replace(' ','')).toEqual('10%');
 
-		var vNode = $()
+		var vNode = $('div')
   			.padding(10,'em')
   			.vNode()
 		expect(vNode.properties.style.padding.replace(' ','')).toEqual('10em');
 	});
 
 	it("can add margin style with px as default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.margin(10)
   			.vNode()
 		expect(vNode.properties.style.margin.replace(' ','')).toEqual('10px');
 	});
 
 	it("can add margin style with different units: %, em, etc", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.margin(10,'%')
   			.vNode()
 		expect(vNode.properties.style.margin.replace(' ','')).toEqual('10%');
 
-		var vNode = $()
+		var vNode = $('div')
   			.margin(10,'em')
   			.vNode()
 		expect(vNode.properties.style.margin.replace(' ','')).toEqual('10em');
 	});
 
 	it("can add border style with px as default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.border(5,'solid','blue')
   			.vNode()
 		expect(vNode.properties.style.border).toEqual('5px solid blue');
 	});
 
 	it("can add opacity style", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.opacity(0.5)
   			.vNode()
 		expect(vNode.properties.style.opacity).toEqual(0.5);
 	});
 
 	it("can add transition style", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.transition('all',1.5)
   			.vNode()
 		expect(vNode.properties.style.transition).toEqual('all 1.5s');
 
-		var vNode = $()
+		var vNode = $('div')
   			.transition('opacity',0.8)
   			.vNode()
 		expect(vNode.properties.style.transition).toEqual('opacity 0.8s');
 	});
 
 	it("can add transition style with 'all' by default", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.transition(1.2)
   			.vNode()
 		expect(vNode.properties.style.transition).toEqual('all 1.2s');
 	});
 
-	it("can extend abstract nodes", function() {
-		var abstract = $().opacity(0.8).padding(20)
+	// it("can add hover styles", function() {
+ //  		var vNode = $('div')
+ //  			.opacity(0.7)
+ //  			.hover(
+ //  				$(this).opacity(1)
+ //  			)
+ //  			.vNode()
+	// 	expect(vNode.properties.style.opacity).toEqual(0.7);
+	// });
 
-  		var vNode = $()
+	it("can extend abstract nodes", function() {
+		var abstract = $('div').opacity(0.8).padding(20)
+
+  		var vNode = $('div')
   			.extend(abstract)
   			.vNode()
 		expect(vNode.properties.style.opacity).toEqual(0.8);
@@ -235,10 +259,10 @@ describe('flow', function(){
 	});
 
 	it("can extend multiple abstract nodes", function() {
-		var first = $().opacity(0.8)
-		var second = $().padding(20)
+		var first = $('div').opacity(0.8)
+		var second = $('div').padding(20)
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.extend(first,second)
   			.vNode()
 		expect(vNode.properties.style.opacity).toEqual(0.8);
@@ -246,7 +270,7 @@ describe('flow', function(){
 	});
 
 	it("can extend abstract nodes in the constructor", function() {
-		var abstract = $().opacity(1)
+		var abstract = $('div').opacity(1)
 
   		var vNode = $(abstract)
   			.vNode()
@@ -254,8 +278,8 @@ describe('flow', function(){
 	});
 
 	it("can extend multiple abstract nodes in the constructor", function() {
-		var first = $().opacity(0.8)
-		var second = $().padding(20)
+		var first = $('div').opacity(0.8)
+		var second = $('div').padding(20)
 
   		var vNode = $(first,second)
   			.vNode()
@@ -266,10 +290,10 @@ describe('flow', function(){
 	it("can extend abstract nodes with arguments", function() {
 
 		function abstract(opacity,padding){
-			return $().opacity(opacity).padding(padding)
+			return $('div').opacity(opacity).padding(padding)
 		}
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.extend(abstract(0.2,50))
   			.vNode()
 		expect(vNode.properties.style.opacity).toEqual(0.2);
@@ -277,7 +301,7 @@ describe('flow', function(){
 	});
 
 	it("can add element events", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.event('onclick',function clicked(){})
   			.vNode()
 		expect(vNode.properties.onclick).toEqual(jasmine.any(Function));
@@ -285,7 +309,7 @@ describe('flow', function(){
 	});
 
 	it("can add click events", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.onclick(function clicked(){})
   			.vNode()
 		expect(vNode.properties.onclick).toEqual(jasmine.any(Function));
@@ -293,7 +317,7 @@ describe('flow', function(){
 	});
 
 	it("can add styles from events", function() {
-  		var domNode = $()
+  		var domNode = $('div')
   			.onclick($(this).opacity(0.5))
   			.render()
   			.click()
@@ -302,7 +326,7 @@ describe('flow', function(){
 	});
 
 	it("can change styles from events", function() {
-  		var domNode = $()
+  		var domNode = $('div')
   			.color('white')
   			.onclick($(this).color('blue'))
   			.render()
@@ -315,7 +339,7 @@ describe('flow', function(){
 
 
 	it("can pull actions to add/change styles", function() {
-  		var vNode = $()
+  		var vNode = $('div')
   			.color('white')
   			.action('@changeColor',
   				$(this).color('blue')
@@ -331,7 +355,7 @@ describe('flow', function(){
 		var mutateResult = "not changed"
 		$action.pull('@clickAction', function(){ mutateResult = "has changed" })
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.onclick('@clickAction')
   			.render()
   			.click()
@@ -344,7 +368,7 @@ describe('flow', function(){
 		var mutateResult = "not changed"
 		$action.pull('@clickAction', function(text){ mutateResult = text })
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.onclick('@clickAction','has changed')
   			.render()
   			.click()
@@ -358,7 +382,7 @@ describe('flow', function(){
 		$action.pull('@clickAction',
 			function(first,second,third){ mutateResult = first + ' ' + second + ' ' + third })
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.onclick('@clickAction',['has changed','with second','and third param'])
   			.render()
   			.click()
@@ -368,13 +392,13 @@ describe('flow', function(){
 	});
 
 	it("can push actions from one node and pull actions from another to change styles", function() {
-  		var firstNode = $()
+  		var firstNode = $('div')
   			.action('@changeOpacity',
   				$(this).opacity(0.4)
   			)
   			.render()
 
-  		var secondNode = $()
+  		var secondNode = $('div')
   			.onclick('@changeOpacity')
   			.render()
   			.click()
@@ -385,7 +409,7 @@ describe('flow', function(){
 	});
 
 	it("can push actions from one node and pull actions from another to change styles with arguments", function() {
-  		var firstNode = $()
+  		var firstNode = $('div')
   			.width(80)
   			.action('@changeWidth',
   				function(width){
@@ -394,7 +418,7 @@ describe('flow', function(){
   			)
   			.render()
 
-  		var secondNode = $()
+  		var secondNode = $('div')
   			.onclick('@changeWidth',200)
   			.render()
   			.click()
@@ -405,7 +429,7 @@ describe('flow', function(){
 	});
 
 	it("can push actions from one node and pull actions from another to change styles with multiple arguments", function() {
-  		var firstNode = $()
+  		var firstNode = $('div')
   			.height(0)
   			.width(0)
   			.action('@changeSize',
@@ -418,7 +442,7 @@ describe('flow', function(){
   			)
   			.render()
 
-  		var secondNode = $()
+  		var secondNode = $('div')
   			.onclick('@changeSize',[560,920])
   			.render()
   			.click()
@@ -433,7 +457,7 @@ describe('flow', function(){
 
 		var data = [1,2,3,4]
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.mapToText(data,function(item){
   				return item + ' '
   			})
@@ -448,7 +472,7 @@ describe('flow', function(){
 			{name: 'Dave', age: '44'}
 		]
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.map(data, function(item){
   				return $('div')
   					.padding(5)
@@ -470,7 +494,7 @@ describe('flow', function(){
 			{name: 'Anna', age: '28'}
 		]
 
-  		var vNode = $()
+  		var vNode = $('div')
   			.filterMap(data, 
   				function(item){
   					return item.age > 10
@@ -496,7 +520,7 @@ describe('flow', function(){
 
 	it("have children structured inside a flexbox column", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.rows(
 				$('div'),
 				$('div')
@@ -509,7 +533,7 @@ describe('flow', function(){
 
 	it("have children structured inside a flexbox row", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div'),
 				$('div')
@@ -522,7 +546,7 @@ describe('flow', function(){
 
 	it("can have children/items have order properties", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div').order(2),
 				$('div').order(1)
@@ -535,7 +559,7 @@ describe('flow', function(){
 
 	it("can have children/items have grow and shrink properties", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div').grow(1),
 				$('div').shrink(1)
@@ -548,7 +572,7 @@ describe('flow', function(){
 
 	it("can have children/items wrap within the parent/container", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div'),
 				$('div')
@@ -561,7 +585,7 @@ describe('flow', function(){
 
 	it("can have children/items align themselves using various declarations", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div').align('flex-start'),
 				$('div').align('end'),
@@ -580,7 +604,7 @@ describe('flow', function(){
 
 	it("can have children/items align within the parent/container", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div'),
 				$('div')
@@ -589,7 +613,7 @@ describe('flow', function(){
 
 		expect(vNode.vNode().properties.style['align-items']).toEqual('stretch');
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div'),
 				$('div')
@@ -603,7 +627,7 @@ describe('flow', function(){
 
 	it("can align content where there is more than one line of flex items", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div'),
 				$('div')
@@ -617,7 +641,7 @@ describe('flow', function(){
 
 	it("can supply responsive grid attributes", function() {
 
-		var vNode = $()
+		var vNode = $('div')
 			.columns(
 				$('div')
 					.xs(12).sm(8).md(6).lg(4)
@@ -704,7 +728,7 @@ describe('flow', function(){
 
 		var data = [1,2,3]
 		var chain = $(data).map(function(item){
-			return $().text(item)
+			return $('div').text(item)
 		}).data()
 
 		expect(chain[0].type).toEqual('vNodeChain');
@@ -720,7 +744,7 @@ describe('flow', function(){
 		var data = [1,2,3]
 		var chain = $(data)
 			.map(function(item){
-				return $().text(item)
+				return $('div').text(item)
 			})
 			.contain('div')
 
@@ -741,7 +765,7 @@ describe('flow', function(){
 		var data = [1,2,3]
 		var chain = $(data)
 			.map(function(item){
-				return $().text(item)
+				return $('div').text(item)
 			})
 			.render()
 			.domNode()

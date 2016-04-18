@@ -98,19 +98,42 @@
  		.start(function(todos){
  			Todos(todos).render()
  		})
- 		.action('addTodo',function(todo){
+ 		.action('@toggleTodo',function(i){
+ 			todos[i].completed = !todos[i].completed
+ 		})
+ 		.clone()
+ 		.log(logger)
+ 		.restart()
+
+ 		// these actions require http req
+ 		.action('@addTodo',function(todo){
  			todos.push(todo)
  		})
- 		.action('toggleTodo',function(i){
- 			todos[i].completed = !todos[i].completed
+ 		.action('@removeTodo',function(todo){
+ 			todos.push(todo)
  		})
  		.validate(function(todos){
  			// validate before sending to db
  		})
- 		.clone()
- 		.log(logger)
  		.http('PUT','http://www.http.com')
  		.wait()
+ 		.restart()
+
+
+ 	$([ {title: 'add todos', completed: false} ])
+ 		.start(function(todos){
+ 			Todos(todos).render()
+ 		})
+ 		.listen({
+ 			'@addTodo': function(todos, todo){
+ 				todos.push(todo)
+ 				return todos
+ 			},
+ 			'@addRemove': function(todos, i){
+ 				todos.splice(i,1)
+ 				return todos
+ 			}
+ 		})
  		.restart()
 
 
