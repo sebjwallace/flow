@@ -3314,8 +3314,8 @@ function isArray(obj) {
     var $private = {};
 
     $private.methods = {
-      then: function then() {},
-      'catch': function _catch() {},
+      success: function success() {},
+      error: function error() {},
       always: function always() {},
 
       // @deprecated
@@ -3371,11 +3371,11 @@ function isArray(obj) {
         xhr.removeEventListener('readystatechange', $private.ready, false);
         $private.methods.always.apply($private.methods, $private.parseResponse(xhr));
         if (xhr.status >= 200 && xhr.status < 300) {
-          $private.methods.then.apply($private.methods, $private.parseResponse(xhr));
+          $private.methods.success.apply($private.methods, $private.parseResponse(xhr));
           // @deprecated
           $private.methods.done.apply($private.methods, $private.parseResponse(xhr));
         } else {
-          $private.methods['catch'].apply($private.methods, $private.parseResponse(xhr));
+          $private.methods.error.apply($private.methods, $private.parseResponse(xhr));
           // @deprecated
           $private.methods.error.apply($private.methods, $private.parseResponse(xhr));
         }
@@ -3412,7 +3412,7 @@ function isArray(obj) {
       var deprecatedMessage = '@fdaciuk/ajax: `%s` is deprecated and will be removed in v2.0.0. Use `%s` instead.';
       switch (method) {
         case 'done':
-          console.warn(deprecatedMessage, 'done', 'then');
+          console.warn(deprecatedMessage, 'done', 'success');
           break;
         case 'error':
           console.warn(deprecatedMessage, 'error', 'catch');
@@ -3437,13 +3437,18 @@ function isArray(obj) {
       return $private.xhrConnection(options.method, options.url, $private.maybeData(options.data), options);
     }
 
-    $public.json = function json(url, callback) {
+    $public.json = function json(url) {
       var tag = document.createElement('script');
       tag.type = 'text/javascript';
       var concat = url.match(/\?/) ? '&' : '?';
       var key = Math.random().toString(36).slice(2).substring(16);
       var callbackName = 'jsonp_callback_' + key;
       tag.src = url + concat + 'callback=' + callbackName;
+
+      var callback = function callback() {
+        console.warn('A callback needs to be assigned to json request: ' + url);
+      };
+
       window[callbackName] = function (data) {
         callback.call(window, data);
         document.getElementsByTagName('head')[0].removeChild(tag);
@@ -3451,6 +3456,12 @@ function isArray(obj) {
         delete window[callbackName];
       };
       document.getElementsByTagName('head')[0].appendChild(tag);
+
+      return {
+        success: function success(fn) {
+          callback = fn;
+        }
+      };
     };
 
     return $public;
@@ -3483,23 +3494,29 @@ function DOM() {
   var _rootNode = vdom.create(_tree);
   document.body.appendChild(_rootNode);
 
-  function update(newTree) {
+  function _update(newTree) {
     var patches = vdom.diff(_tree, newTree);
     _rootNode = vdom.patch(_rootNode, patches);
     _tree = newTree;
   }
   return {
     render: function render(newTree) {
-      update(newTree);
+      _update(newTree);
     },
-    reload: function reload() {
-      document.body.removeChild(_rootNode);
-      _rootNode = vdom.create(_tree);
-      document.body.appendChild(_rootNode);
+    update: function update() {
+      _update(_tree);
     }
   };
 }
 var vDOM = new DOM();
+
+window.onresize = function () {
+  vDOM.update();
+};
+
+function isArray(arr) {
+  return Array.isArray(arr);
+}
 
 function isObject(obj) {
   return !Array.isArray(obj) && typeof obj == 'object';
@@ -3507,6 +3524,12 @@ function isObject(obj) {
 
 function parseArgs(args) {
   return Array.prototype.slice.call(args);
+}
+
+function toArray(obj) {
+  var arr = [];
+  for (var i in obj) arr.push(obj[i]);
+  return arr;
 }
 
 function parseUnits(args) {
@@ -3522,9 +3545,6 @@ function getInputType(input) {
   if (!input) return 'NULL';
   if (typeof input == 'function') return 'NULL';
   if (input.window) if (input.window = window.window) return 'NULL';
-  if (typeof input == 'string') {
-    if (input == 'GET' || input == 'POST' || input == 'JSON') return 'HTTP';
-  }
   if (typeof input == 'string') return 'TAG';
   if (input.type) if (input.type == 'vNodeChain') return 'CHAIN';
   if (Array.isArray(input)) return 'DATA';
@@ -3615,12 +3635,7 @@ function $(tag, attributes, children) {
   var _onload = function onload() {};
 
   var _data = null;
-  var _http = null;
   var _mediaSize = '';
-
-  var _ajaxCallback = null;
-  var _ajaxSuccess = null;
-  var _ajaxError = null;
 
   var _chainState = null;
 
@@ -3628,49 +3643,22 @@ function $(tag, attributes, children) {
   * Initialize State
   **********************************/
 
-  if (getInputType(tag) == 'DATA') {
+  var type = getInputType(tag);
+
+  if (type == 'DATA') {
     _data = tag;
     tag = null;
     _chainState = 'DATA';
-  } else if (getInputType(tag) == 'CHAIN') {
+  } else if (type == 'CHAIN') {
     tag = 'DIV';
     var abstracts = parseArgs(arguments);
     _extend(abstracts);
     _chainState = 'ELEMENT';
-  } else if (getInputType(tag) == 'NULL') {
+  } else if (type == 'NULL') {
     tag = 'DIV';
     _chainState = 'ERROR';
-  } else if (getInputType(tag) == 'HTTP') {
-    var method = tag.toLowerCase();
-    var url = attributes;
-    var headers = children || {};
-    _attributes = {};
-    _children = [];
-
-    if (method == 'json') {
-      ajax().json(url, function (data) {
-        replaceDomNode(_ajaxSuccess(data));
-      });
-    } else {
-      ajax(headers)[method](url).always(function (res, xhr) {
-        if (_ajaxCallback) {
-          replaceDomNode(_ajaxCallback(res, xhr));
-          _chainState = 'DATA';
-        }
-      }).then(function (res, xhr) {
-        if (_ajaxSuccess) {
-          replaceDomNode(_ajaxSuccess(res, xhr));
-          _chainState = 'DATA';
-        }
-      })['catch'](function (res, xhr) {
-        if (_ajaxError) {
-          replaceDomNode(_ajaxError(res, xhr));
-          _chainState = 'DATA';
-        }
-      });
-    }
-    tag = null;
-    _chainState = 'AJAX';
+  } else if (type == 'TAG') {
+    if (isArray(attributes)) _children.concat(attributes);
   }
 
   /*================================
@@ -3772,9 +3760,9 @@ function $(tag, attributes, children) {
         return onReturn();
       }
       if (getInputType(fn) == 'CHAIN') {
-        _addAttribute(_event, function () {
+        _addAttribute(_event, function (mouseEvent) {
           var styles = fn.vNode().properties.style;
-          for (var style in styles) domElement.style[style] = styles[style];
+          for (var style in styles) mouseEvent.target.style[style] = styles[style];
         });
         return onReturn();
       }
@@ -3864,6 +3852,26 @@ function $(tag, attributes, children) {
       _addStyle('display', 'block');
       return onReturn();
     },
+    left: function left(attr, value, unit) {
+      unit = 'px' || unit;
+      _addStyle(attr + '-left', value + unit);
+      return onReturn();
+    },
+    right: function right(attr, value, unit) {
+      unit = 'px' || unit;
+      _addStyle(attr + '-right', value + unit);
+      return onReturn();
+    },
+    top: function top(attr, value, unit) {
+      unit = 'px' || unit;
+      _addStyle(attr + '-top', value + unit);
+      return onReturn();
+    },
+    bottom: function bottom(attr, value, unit) {
+      unit = 'px' || unit;
+      _addStyle(attr + '-bottom', value + unit);
+      return onReturn();
+    },
     color: function color(_color) {
       if (arguments.length > 2) _color = parseRGBA(arguments);
       _color = parseColor(_color);
@@ -3912,7 +3920,7 @@ function $(tag, attributes, children) {
       return onReturn();
     },
     border: function border(size, style, color) {
-      _addStyle('border', size + 'px ' + style + ' ' + parseColor(color));
+      if (typeof size == 'string') _addStyle('border', size);else _addStyle('border', size + 'px ' + style + ' ' + parseColor(color));
       return onReturn();
     },
     font: function font(attr, value, unit) {
@@ -3957,6 +3965,19 @@ function $(tag, attributes, children) {
     max: function max(attr, value, unit) {
       unit = unit || 'px';
       _addStyle('max-' + attr, value + unit);
+      return onReturn();
+    },
+    min: function min(attr, value, unit) {
+      unit = unit || 'px';
+      _addStyle('min-' + attr, value + unit);
+      return onReturn();
+    },
+    media: function media(operator, width, vNodeChain) {
+      if (operator == '>') {
+        if (window.outerWidth > width) _extend([vNodeChain]);
+      } else if (operator == '<') {
+        if (window.outerWidth < width) _extend([vNodeChain]);
+      }
       return onReturn();
     },
 
@@ -4113,7 +4134,9 @@ function $(tag, attributes, children) {
 
     contain: function contain(containerTag) {
       tag = containerTag;
-      _children = _data.map(function (child) {
+      var data = _data;
+      if (isObject(data)) data = toArray(data);
+      _children = data.map(function (child) {
         if (getInputType(child) != 'CHAIN') return chain.toText(child);
         return child.vNode();
       });
@@ -4122,28 +4145,6 @@ function $(tag, attributes, children) {
     extend: function extend() {
       var abstracts = parseArgs(arguments);
       _extend(abstracts);
-      return onReturn();
-    },
-
-    /**********************************
-    * Ajax
-    **********************************/
-
-    'default': function _default(vNodeChain) {
-      _extend([vNodeChain]);
-      vDOM.reload();
-      return onReturn();
-    },
-    'return': function _return(fn) {
-      _ajaxCallback = fn;
-      return onReturn();
-    },
-    success: function success(fn) {
-      _ajaxSuccess = fn;
-      return onReturn();
-    },
-    error: function error(fn) {
-      _ajaxError = fn;
       return onReturn();
     },
 

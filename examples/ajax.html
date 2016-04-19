@@ -18,52 +18,27 @@
 	var $action = Flow.$action
 
 	var address = 'http://jsonplaceholder.typicode.com/posts/1'
-	// loadAjax(address)
 
-	function loadAjax(url){
-			$('GET', url)
-			.default(
-				$('div').text('loading data...')
-			)
-			.success(function(data){
-				return $('div')
-					.background(200,220,250)
-					.padding(20)
-					.justify('space-around')
-					.items('baseline')
-					.columns(
-						$('h1').text(data.title),
-						$('p').text(data.body),
-						$('button')
-							.text('retry but with error')
-							.onclick(function(){
-								loadAjax('http://nosuchurl')
-							})
-					)
-			})
-			.error(function(){
-				return $()
-					.background(200,150,120)
-					.padding(20)
-					.text('The data could not be loaded')
-					.justify('space-between')
-					.columns(
-						$('button')
-						.text('retry with success')
-						.onclick(function(){
-							loadAjax(address)
-						})
-					)
-			})
-			.render()
-	}
+	function renderSuccess(data, error){
 
-
-	function renderJSON(data){
-
-		if(!data)
+		if(!data && !error)
 			return $('div')
 				.text('loading data...')
+
+		if(error){
+			return $('div')
+				.background(200,150,120)
+				.padding(20)
+				.text('The data could not be loaded')
+				.justify('space-between')
+				.columns(
+					$('button')
+					.text('retry with success')
+					.onclick(function(){
+						getData(address)
+					})
+				)
+		}
 
 		return $('div')
 			.background(200,220,250)
@@ -82,18 +57,21 @@
 	}
 
 
-	$action.pull('@loadedData', function(data){
-		renderJSON(data).render()
+	$action.pull('@loadedData', function(data,error){
+		renderSuccess(data,error).render()
 	})
 
 	function getData(url){
-		$ajax().get(url)
-		.always(function(data){
-			$action.push('@loadedData',data)()
-		})
+		renderSuccess().render()
+		$ajax()
+			.get(url)
+			.success(function(data){
+				$action.push('@loadedData',data)()
+			}).error(function(data){
+				$action.push('@loadedData',[data,true])()
+			})
 	}
 
-	renderJSON().render()
 	getData(address)
 
 	</script>

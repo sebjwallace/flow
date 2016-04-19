@@ -23,15 +23,20 @@ function DOM(){
     render: function(newTree){
       update(newTree)
     },
-    reload: function(){
-      document.body.removeChild(_rootNode)
-      _rootNode = vdom.create(_tree)
-      document.body.appendChild(_rootNode)
+    update: function(){
+      update(_tree)
     }
   }; 
 }
 var vDOM = new DOM()
 
+window.onresize = function(){
+  vDOM.update()
+}
+
+function isArray(arr){
+  return Array.isArray(arr)
+}
 
 function isObject(obj){
   return (!Array.isArray(obj) && typeof obj == 'object')
@@ -39,6 +44,13 @@ function isObject(obj){
 
 function parseArgs(args){
   return Array.prototype.slice.call(args)
+}
+
+function toArray(obj){
+  var arr = []
+  for(var i in obj)
+    arr.push(obj[i])
+  return arr
 }
 
 function parseUnits(args){
@@ -57,10 +69,6 @@ function getInputType(input){
   if(input.window)
     if(input.window = window.window)
       return 'NULL'
-  if(typeof input == 'string'){
-    if(input == 'GET' || input == 'POST' || input == 'JSON')
-      return 'HTTP'
-  }
   if(typeof input == 'string')
       return 'TAG'
   if(input.type)
@@ -166,12 +174,7 @@ export function $(tag,attributes,children){
     var onload = function(){}
 
     var _data = null
-    var _http = null
     var _mediaSize = ''
-    
-    var _ajaxCallback = null
-    var _ajaxSuccess = null
-    var _ajaxError = null
 
     var _chainState = null
 
@@ -179,56 +182,26 @@ export function $(tag,attributes,children){
     * Initialize State
     **********************************/
 
-    if(getInputType(tag) == 'DATA'){
+    var type = getInputType(tag)
+
+    if(type == 'DATA'){
       _data = tag
       tag = null
       _chainState = 'DATA'
     }
-    else if(getInputType(tag) == 'CHAIN'){
+    else if(type == 'CHAIN'){
       tag = 'DIV'
       var abstracts = parseArgs(arguments)
       extend(abstracts)
       _chainState = 'ELEMENT'
     }
-    else if(getInputType(tag) == 'NULL'){
+    else if(type == 'NULL'){
       tag = 'DIV'
       _chainState = 'ERROR'
     }
-    else if(getInputType(tag) == 'HTTP'){
-      var method = tag.toLowerCase()
-      var url = attributes
-      var headers = children || {}
-      _attributes = {}
-      _children = []
-
-      if(method == 'json'){
-        ajax().json(url,function(data){
-          replaceDomNode(_ajaxSuccess(data))
-        })
-      }
-      else{
-        ajax(headers)[method](url)
-          .always(function(res,xhr){
-            if(_ajaxCallback){
-              replaceDomNode(_ajaxCallback(res,xhr))
-              _chainState = 'DATA'
-            }
-          })
-          .then(function(res,xhr){
-            if(_ajaxSuccess){
-              replaceDomNode(_ajaxSuccess(res,xhr))
-              _chainState = 'DATA'
-            }
-          })
-          .catch(function(res,xhr){
-            if(_ajaxError){
-              replaceDomNode(_ajaxError(res,xhr))
-              _chainState = 'DATA'
-            }
-          })
-      }
-      tag = null
-      _chainState = 'AJAX'
+    else if(type == 'TAG'){
+      if(isArray(attributes))
+        _children.concat(attributes)
     }
 
     /*================================
@@ -330,10 +303,10 @@ export function $(tag,attributes,children){
       		return onReturn()
       	}
         if(getInputType(fn) == 'CHAIN'){
-          addAttribute(event,function(){
+          addAttribute(event,function(mouseEvent){
             var styles = fn.vNode().properties.style
             for(var style in styles)
-              domElement.style[style] = styles[style]
+              mouseEvent.target.style[style] = styles[style]
           })
           return onReturn()
         }
@@ -424,6 +397,26 @@ export function $(tag,attributes,children){
         addStyle('display','block')
         return onReturn()
       },
+      left: function(attr,value,unit){
+        unit = 'px' || unit
+        addStyle(attr + '-left', value + unit)
+        return onReturn()
+      },
+      right: function(attr,value,unit){
+        unit = 'px' || unit
+        addStyle(attr + '-right', value + unit)
+        return onReturn()
+      },
+      top: function(attr,value,unit){
+        unit = 'px' || unit
+        addStyle(attr + '-top', value + unit)
+        return onReturn()
+      },
+      bottom: function(attr,value,unit){
+        unit = 'px' || unit
+        addStyle(attr + '-bottom', value + unit)
+        return onReturn()
+      },
       color: function(color){
         if(arguments.length > 2)
           color = parseRGBA(arguments)
@@ -481,7 +474,10 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       border: function(size,style,color){
-        addStyle('border', size + 'px ' + style + ' ' + parseColor(color))
+        if(typeof size == 'string')
+          addStyle('border', size)
+        else
+          addStyle('border', size + 'px ' + style + ' ' + parseColor(color))
         return onReturn()
       },
       font: function(attr,value,unit){
@@ -526,6 +522,22 @@ export function $(tag,attributes,children){
       max: function(attr,value,unit){
         unit = unit || 'px'
         addStyle('max-' + attr, value + unit)
+        return onReturn()
+      },
+      min: function(attr,value,unit){
+        unit = unit || 'px'
+        addStyle('min-' + attr, value + unit)
+        return onReturn()
+      },
+      media: function(operator,width,vNodeChain){
+        if(operator == '>'){
+          if(window.outerWidth > width)
+            extend([vNodeChain])
+        }
+        else if(operator == '<'){
+          if(window.outerWidth < width)
+            extend([vNodeChain])
+        }
         return onReturn()
       },
 
@@ -695,7 +707,10 @@ export function $(tag,attributes,children){
 
       contain: function(containerTag){
         tag = containerTag
-        _children = _data.map(function(child){
+        var data = _data
+        if(isObject(data))
+          data = toArray(data)
+        _children = data.map(function(child){
           if(getInputType(child) != 'CHAIN')
             return chain.toText(child)
           return child.vNode()
@@ -706,28 +721,6 @@ export function $(tag,attributes,children){
         var abstracts = parseArgs(arguments)
         extend(abstracts)
       	return onReturn()
-      },
-
-      /**********************************
-      * Ajax
-      **********************************/
-
-      default: function(vNodeChain){
-        extend([vNodeChain])
-        vDOM.reload()
-        return onReturn()
-      },
-      return: function(fn){
-        _ajaxCallback = fn
-        return onReturn()
-      },
-      success: function(fn){
-        _ajaxSuccess = fn
-        return onReturn()
-      },
-      error: function(fn){
-        _ajaxError = fn
-        return onReturn()
       },
 
       /**********************************

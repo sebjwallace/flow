@@ -36,8 +36,8 @@
     var $private = {}
 
     $private.methods = {
-      then: function () {},
-      catch: function () {},
+      success: function () {},
+      error: function () {},
       always: function () {},
 
       // @deprecated
@@ -99,13 +99,13 @@
         $private.methods.always
           .apply($private.methods, $private.parseResponse(xhr))
         if (xhr.status >= 200 && xhr.status < 300) {
-          $private.methods.then
+          $private.methods.success
             .apply($private.methods, $private.parseResponse(xhr))
           // @deprecated
           $private.methods.done
             .apply($private.methods, $private.parseResponse(xhr))
         } else {
-          $private.methods.catch
+          $private.methods.error
             .apply($private.methods, $private.parseResponse(xhr))
           // @deprecated
           $private.methods.error
@@ -144,7 +144,7 @@
       var deprecatedMessage = '@fdaciuk/ajax: `%s` is deprecated and will be removed in v2.0.0. Use `%s` instead.'
       switch (method) {
         case 'done':
-          console.warn(deprecatedMessage, 'done', 'then')
+          console.warn(deprecatedMessage, 'done', 'success')
           break
         case 'error':
           console.warn(deprecatedMessage, 'error', 'catch')
@@ -180,13 +180,18 @@
       )
     }
 
-    $public.json = function json(url,callback){
+    $public.json = function json(url){
       var tag = document.createElement('script')
       tag.type = 'text/javascript'
       var concat = url.match(/\?/) ? '&' : '?'
       var key = Math.random().toString(36).slice(2).substring(16)
       var callbackName = 'jsonp_callback_' + key
       tag.src = url + concat + 'callback=' + callbackName
+
+      var callback = function(){
+        console.warn('A callback needs to be assigned to json request: ' + url)
+      }
+
       window[callbackName] = function(data){
         callback.call(window,data)
         document.getElementsByTagName('head')[0].removeChild(tag)
@@ -194,6 +199,12 @@
         delete window[callbackName]
       }
       document.getElementsByTagName('head')[0].appendChild(tag)
+
+      return {
+        success: function(fn){
+          callback = fn
+        }
+      }
     }
 
     return $public
