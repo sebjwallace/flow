@@ -9,6 +9,8 @@ var grid = require('./flexboxGrid')
 grid.mount()
 
 function DOM(){
+
+  var _onchange = null
     
   var _tree = vdom.h('#root','')
   var _rootNode = vdom.create(_tree)
@@ -24,7 +26,16 @@ function DOM(){
       update(newTree)
     },
     update: function(){
-      update(_tree)
+      if(_onchange){
+        var vTree = _onchange().vNode()
+        update(vTree)
+      }
+      else console.warn('onchange() has not been set')
+    },
+    onchange: function(fn){
+      _onchange = fn
+      var vTree = _onchange.call().vNode()
+      update(vTree)
     }
   }; 
 }
@@ -55,10 +66,14 @@ function toArray(obj){
 
 function parseUnits(args){
   var args = parseArgs(args)
-    var unit = 'px'
-    if(typeof args[args.length-1] == 'string')
-      unit = args.splice(args.length-1)
-    return args.map(arg => arg += unit + ' ')
+  var unit = 'px'
+  return args.map(function(arg){
+    if(arg == 'px' || arg == '%' || arg == 'em' || arg == 'rem')
+      return ''
+    if(isNaN(arg))
+      return arg
+    else return arg += unit + ' '
+  })
 }
 
 function getInputType(input){
@@ -68,7 +83,7 @@ function getInputType(input){
     return 'NULL'
   if(input.window)
     if(input.window = window.window)
-      return 'NULL'
+      return 'WINDOW'
   if(typeof input == 'string')
       return 'TAG'
   if(input.type)
@@ -212,9 +227,14 @@ export function $(tag,attributes,children){
 
       type: 'vNodeChain',
 
-      pipe: function(fn){
-        _data = fn(_data)
-        return onReturn()
+      /**********************************
+      * Window / vDom
+      **********************************/
+
+      update: function(fn){
+        if(fn)
+          vDOM.onchange(fn)
+        else vDOM.update()
       },
 
       /**********************************
@@ -265,6 +285,10 @@ export function $(tag,attributes,children){
       text: function(text){
         addChild(text)
       	return onReturn()
+      },
+      append: function(fn){
+        addChild(fn.call().vNode())
+        return onReturn()
       },
       children: function(){
         var args = parseArgs(arguments)
@@ -398,22 +422,22 @@ export function $(tag,attributes,children){
         return onReturn()
       },
       left: function(attr,value,unit){
-        unit = 'px' || unit
+        unit = unit || 'px'
         addStyle(attr + '-left', value + unit)
         return onReturn()
       },
       right: function(attr,value,unit){
-        unit = 'px' || unit
+        unit = unit || 'px'
         addStyle(attr + '-right', value + unit)
         return onReturn()
       },
       top: function(attr,value,unit){
-        unit = 'px' || unit
+        unit = unit || 'px'
         addStyle(attr + '-top', value + unit)
         return onReturn()
       },
       bottom: function(attr,value,unit){
-        unit = 'px' || unit
+        unit = unit || 'px'
         addStyle(attr + '-bottom', value + unit)
         return onReturn()
       },
@@ -466,6 +490,10 @@ export function $(tag,attributes,children){
       margin: function(attr,value){
         var margin = parseUnits(arguments).join('')
         addStyle('margin',margin)
+        return onReturn()
+      },
+      auto: function(attr){
+        addStyle(attr,'auto')
         return onReturn()
       },
       offset: function(side,measure,unit){
@@ -531,12 +559,22 @@ export function $(tag,attributes,children){
       },
       media: function(operator,width,vNodeChain){
         if(operator == '>'){
-          if(window.outerWidth > width)
-            extend([vNodeChain])
+          if(window.outerWidth > width){
+            if(vNodeChain == 'hide')
+              addStyle('display','none')
+            else if(vNodeChain == 'fill')
+              addStyle('width','100%')
+            else extend([vNodeChain])
+          }
         }
         else if(operator == '<'){
-          if(window.outerWidth < width)
-            extend([vNodeChain])
+          if(window.outerWidth < width){
+            if(vNodeChain == 'hide')
+              addStyle('display','none')
+            else if(vNodeChain == 'fill')
+              addStyle('width','100%')
+            else extend([vNodeChain])
+          }
         }
         return onReturn()
       },
@@ -620,26 +658,22 @@ export function $(tag,attributes,children){
       **********************************/
 
       xs: function(size){
-        if(size)
-          addClass('col-xs-' + size)
+        addClass('col-xs-' + size)
         _mediaSize = 'xs'
         return onReturn()
       },
       sm: function(size){
-        if(size)
-          addClass('col-sm-' + size)
+        addClass('col-sm-' + size)
         _mediaSize = 'sm'
         return onReturn()
       },
       md: function(size){
-        if(size)
-          addClass('col-md-' + size)
+        addClass('col-md-' + size)
         _mediaSize = 'md'
         return onReturn()
       },
       lg: function(size){
-        if(size)
-          addClass('col-lg-' + size)
+        addClass('col-lg-' + size)
         _mediaSize = 'lg'
         return onReturn()
       },
@@ -647,7 +681,10 @@ export function $(tag,attributes,children){
       /**********************************
       * Data
       **********************************/
-
+      pipe: function(fn){
+        _data = fn(_data)
+        return onReturn()
+      },
       if: function(condition,vNode){
         if(condition == true)
           extend([vNode])
