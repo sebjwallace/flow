@@ -92,8 +92,12 @@ function getInputType(input){
   if(Array.isArray(input))
     return 'DATA'
   if(typeof input == 'object'){
-    if(Object.keys(input).length > 0)
+    if(input['$tag']){
+      return 'JSON'
+    }
+    if(Object.keys(input).length > 0){
       return 'DATA'
+    }
   }
 }
 
@@ -105,6 +109,8 @@ export function $(tag,attributes,children){
 
     function extend(abstracts){
       abstracts.forEach(function(abstract){
+        if(typeof abstract == 'function')
+          abstract = abstract()
         var vNode = abstract.vNode()
         for(var prop in vNode.properties){
           if(prop != 'style')
@@ -166,12 +172,13 @@ export function $(tag,attributes,children){
       return new Hook()
     }
 
-    function replaceDomNode(vNodeChain){
-      var vNode = vNodeChain.vNode()
-      var el = vdom.create(vNode)
-      domElement.innerHTML = ''
-      domElement.removeAttribute('style')
-      domElement.appendChild(el)
+    function fromJSON(attrs){
+      for(var attr in attrs){
+        var args = attrs[attr]
+        if(!isArray(args))
+          args = [args]
+        chain[attr].apply(this,args)
+      }
     }
 
     function onReturn(){
@@ -241,6 +248,10 @@ export function $(tag,attributes,children){
       * Attributes
       **********************************/
 
+      schema: function(attrs){
+        fromJSON(attrs)
+        return onReturn()
+      },
       attr: function(attr,val){
         addAttribute(attr,val)
         return onReturn()
@@ -251,6 +262,10 @@ export function $(tag,attributes,children){
       },
       addAttribute: function(attr,val){
         addAttribute(attr,val)
+        return onReturn()
+      },
+      $tag: function(name){
+        tag = name
         return onReturn()
       },
       id: function(id){
@@ -838,6 +853,15 @@ export function $(tag,attributes,children){
       	vDOM.render(vNode)
       	return onReturn()
       }
+    }
+
+    /**********************************
+    * If JSON input
+    **********************************/
+
+    if(type == 'JSON'){
+      fromJSON(tag)
+      return onReturn()
     }
     
     return chain

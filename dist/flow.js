@@ -3559,7 +3559,12 @@ function getInputType(input) {
   if (input.type) if (input.type == 'vNodeChain') return 'CHAIN';
   if (Array.isArray(input)) return 'DATA';
   if (typeof input == 'object') {
-    if (Object.keys(input).length > 0) return 'DATA';
+    if (input['$tag']) {
+      return 'JSON';
+    }
+    if (Object.keys(input).length > 0) {
+      return 'DATA';
+    }
   }
 }
 
@@ -3571,6 +3576,7 @@ function $(tag, attributes, children) {
 
   function _extend(abstracts) {
     abstracts.forEach(function (abstract) {
+      if (typeof abstract == 'function') abstract = abstract();
       var vNode = abstract.vNode();
       for (var prop in vNode.properties) {
         if (prop != 'style') _attributes[prop] = vNode.properties[prop];
@@ -3622,12 +3628,12 @@ function $(tag, attributes, children) {
     return new Hook();
   }
 
-  function replaceDomNode(vNodeChain) {
-    var vNode = vNodeChain.vNode();
-    var el = vdom.create(vNode);
-    domElement.innerHTML = '';
-    domElement.removeAttribute('style');
-    domElement.appendChild(el);
+  function fromJSON(attrs) {
+    for (var attr in attrs) {
+      var args = attrs[attr];
+      if (!isArray(args)) args = [args];
+      chain[attr].apply(this, args);
+    }
   }
 
   function onReturn() {
@@ -3691,6 +3697,10 @@ function $(tag, attributes, children) {
     * Attributes
     **********************************/
 
+    schema: function schema(attrs) {
+      fromJSON(attrs);
+      return onReturn();
+    },
     attr: function attr(_attr, val) {
       _addAttribute(_attr, val);
       return onReturn();
@@ -3701,6 +3711,10 @@ function $(tag, attributes, children) {
     },
     addAttribute: function addAttribute(attr, val) {
       _addAttribute(attr, val);
+      return onReturn();
+    },
+    $tag: function $tag(name) {
+      tag = name;
       return onReturn();
     },
     id: function id(_id) {
@@ -4251,6 +4265,15 @@ function $(tag, attributes, children) {
       return onReturn();
     }
   };
+
+  /**********************************
+  * If JSON input
+  **********************************/
+
+  if (type == 'JSON') {
+    fromJSON(tag);
+    return onReturn();
+  }
 
   return chain;
 }
